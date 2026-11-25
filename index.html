@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tiogochi</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600&family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+/* Pla: una consola-ou nevada amb la pantalla al centre; a sota, targetes per entrar, el problema del dia, el butlletí i el diari. Una sola columna de mòbil. */
+:root{
+  --bg:#e8f0ee; --ink:#1c2a27; --muted:#566a65; --card:#ffffff; --line:#cfdcd8;
+  --shell:#5b9097; --shell-hi:#8cbcc2; --shell-deep:#2f5b62; --bezel:#2c565d;
+  --btn:#cf4a3f; --btn-deep:#96302a; --strip:#f3ead2; --screen:#d8ebe6; --night:#22344a;
+  --pine:#1f6b4f; --gold:#e3a626; --red:#c7372c; --snow:#ffffff; --ok:#1f7a4f; --bad:#b3362c;
+  --display:"Pixelify Sans","Courier New",monospace;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1a18; --ink:#e8f0ec; --muted:#9ab0a9; --card:#182623; --line:#2b3f3a;
+    --pine:#78c9a6; --ok:#6fd3a0; --bad:#ff8a7a; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1a18; --ink:#e8f0ec; --muted:#9ab0a9; --card:#182623; --line:#2b3f3a;
+  --pine:#78c9a6; --ok:#6fd3a0; --bad:#ff8a7a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;font-variant-ligatures:none;font-feature-settings:"locl" 0}
+#app{max-width:440px;margin:0 auto;padding:20px 16px 40px;display:flex;flex-direction:column;gap:16px}
+h1{font-family:var(--display);font-weight:600;font-size:40px;line-height:1;margin:0}
+h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0 0 10px}
+.sub{margin:6px 0 0;color:var(--muted);font-size:15px}
+.sub b{color:var(--ink)}
+.slogan{margin:-4px 0 0;font-size:15px;color:var(--pine);font-weight:700;text-align:center;text-wrap:balance}
+.padrins{margin:-8px 0 0;text-align:center;font-size:14px;color:var(--muted)}
+.padrins b{color:var(--ink)}
+.tag{font-size:12px;font-weight:700;color:var(--pine);margin-left:6px}
+.count{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px}
+.count .num{font-family:var(--display);font-weight:600;font-size:46px;line-height:1;color:var(--red);min-width:62px;text-align:center;font-variant-numeric:tabular-nums}
+.count .txt{font-size:15px;line-height:1.3}
+.count .txt b{display:block;font-family:var(--display);font-weight:600;font-size:18px}
+
+/* Consola */
+.egg{position:relative;width:min(340px,100%);aspect-ratio:34/45;margin:6px auto 0;border-radius:50% 50% 50% 50% / 58% 58% 42% 42%;overflow:hidden;
+  background:radial-gradient(ellipse 60% 40% at 32% 28%,var(--shell-hi),transparent 70%),linear-gradient(170deg,var(--shell),var(--shell-deep));
+  box-shadow:inset -10px -18px 28px rgba(0,0,0,.25),inset 8px 10px 20px rgba(255,255,255,.18),0 14px 28px rgba(0,0,0,.22);
+  display:flex;flex-direction:column;align-items:center;padding-top:24px}
+.egg::before{content:"";position:absolute;left:-14%;right:-14%;top:-22%;height:36%;border-radius:50%;background:var(--snow);box-shadow:inset 0 -6px 10px rgba(120,160,170,.25)}
+.egg>*{position:relative}
+.dots{position:absolute;inset:0;pointer-events:none}
+.dots i{position:absolute;width:5px;height:5px;border-radius:50%;background:#fff;opacity:.85}
+.dots b{position:absolute;width:9px;height:9px;background:#f6e7a8;clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%)}
+.logo{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:5px;color:var(--bezel);margin:0 0 6px}
+.bezel{width:70%;background:var(--strip);border:3px solid var(--bezel);border-radius:20px;padding:5px 7px 7px;box-shadow:inset 0 2px 0 rgba(255,255,255,.6)}
+.icons{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:5px}
+.ico{background:none;border:2px solid transparent;border-radius:9px;padding:2px 0;cursor:pointer;display:flex;justify-content:center;color:#3a3a2e}
+.ico svg{width:21px;height:21px}
+.game{position:absolute;inset:0;width:100%;height:100%;touch-action:manipulation;cursor:pointer}
+.ico.sel{border-color:var(--bezel);background:#fff}
+.screen{position:relative;border-radius:10px;overflow:hidden;background:var(--screen);border:2px solid #9fb3a8}
+.screen.night{background:var(--night)}
+.screen{aspect-ratio:320/264}
+.lcd{position:absolute;inset:0;background:#cfd8b4;background-image:linear-gradient(rgba(60,80,50,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(60,80,50,.06) 1px,transparent 1px);background-size:3px 3px;
+  color:#26301f;font-family:var(--display);padding:7px 9px;display:flex;flex-direction:column;gap:5px}
+.lcd .hd{display:flex;justify-content:space-between;font-size:11.5px;border-bottom:2px solid #26301f;padding-bottom:3px}
+.lcd .g{display:grid;grid-template-columns:1fr 1fr;gap:5px 8px;flex:1}
+.lcd .g div{font-size:10.5px;line-height:1.1}
+.lcd .g b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.lcd .ch{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;align-items:end;padding-top:4px}
+.lcd .ch div{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:10px;gap:2px}
+.lcd .ch i{display:block;width:100%;background:#26301f;min-height:2px}
+.lcd .ch .today i{background:#c7372c}
+.lcd .rc{flex:1;font-size:13px;line-height:1.25;display:flex;align-items:center;text-align:center}
+.lcd .ft{font-size:10px;text-align:center;opacity:.75}
+.lcd .qq{flex:1;overflow:auto;font-size:12px;line-height:1.25}
+.lcd .qq p{margin:0}
+.lcd .op{display:grid;gap:4px;flex:1;align-content:start}
+.lcd .op button{font:inherit;font-size:12px;text-align:left;color:#26301f;background:none;border:2px solid transparent;border-radius:6px;padding:3px 5px;cursor:pointer}
+.lcd .op button.sel{border-color:#26301f}
+.lcd .op button.ok{background:#26301f;color:#cfd8b4}
+.lcd .op button.no{text-decoration:line-through}
+.lcd .big{font-size:15px;font-weight:600;margin:0 0 3px}
+.screen svg.tio{display:block;width:100%;height:auto}
+.bubble{position:absolute;left:6px;right:6px;top:5px;font-family:var(--display);font-size:13.5px;line-height:1.15;color:var(--ink);text-align:center;text-wrap:balance}
+.night .bubble{color:#f6eecb}
+.lvl{position:absolute;right:6px;bottom:4px;font-family:var(--display);font-size:11px;color:#3a4a46;background:rgba(255,255,255,.7);border-radius:6px;padding:0 5px}
+.flake{position:absolute;top:-6px;width:4px;height:4px;background:var(--snow);border-radius:50%;opacity:.9;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(240px)}}
+.food{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:4px;background:rgba(243,234,210,.95);border-top:2px solid #9fb3a8}
+.fd{background:none;border:2px solid transparent;border-radius:8px;padding:1px 0 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;font:inherit;font-size:9.5px;font-weight:800;color:#2a1a12;line-height:1.1}
+.fd svg{width:26px;height:26px}
+.fd.sel{border-color:var(--bezel);background:#fff}
+.bars{display:grid;grid-template-columns:auto 1fr;gap:3px 6px;align-items:center;margin-top:5px;font-family:var(--display);font-size:12px;color:#3a3a2e}
+.bar{display:grid;grid-template-columns:repeat(10,1fr);gap:2px}
+.bar i{height:8px;border-radius:2px;background:rgba(60,60,40,.18)}
+.bar i.on{background:var(--gold)}
+.bar.low i.on{background:#e8604f}
+.bite{position:absolute;left:10%;top:52%;width:40px;height:40px;animation:bite 1.3s ease-in forwards}
+.bite svg{width:40px;height:40px}
+@keyframes bite{0%{transform:translate(-70px,-50px) scale(1.3)}70%{transform:translate(0,0) scale(1)}100%{transform:scale(0);opacity:0}}
+.notes{position:absolute;left:8%;top:30%;font-family:var(--display);font-size:22px;color:var(--pine);animation:notes 1.6s ease-out forwards}
+@keyframes notes{from{transform:translateY(20px);opacity:0}30%{opacity:1}to{transform:translateY(-30px);opacity:0}}
+.munch{animation:munch .35s ease-in-out 3;transform-origin:50% 90%}
+@keyframes munch{50%{transform:translateY(-4px) rotate(-1.5deg)}}
+.whack{animation:whack .3s ease-in-out;transform-origin:50% 90%}
+@keyframes whack{50%{transform:translateY(6px) scaleY(.95)}}
+.keys{display:flex;gap:26px;margin-top:10px;align-items:flex-start}
+.key{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:0;cursor:pointer;font-family:var(--display);font-size:12px;color:#f3f7f6}
+.key i{display:block;width:38px;height:38px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#f07a6f,var(--btn) 55%,var(--btn-deep));box-shadow:0 4px 0 var(--btn-deep),0 6px 8px rgba(0,0,0,.3)}
+.key:active i{transform:translateY(3px);box-shadow:0 1px 0 var(--btn-deep),0 2px 4px rgba(0,0,0,.3)}
+.key:nth-child(2){margin-top:8px}
+.key.off span{opacity:.35}
+.senyera{display:flex;gap:2px;margin-top:8px}
+.senyera span{width:12px;height:5px;background:#f2c23a}
+.senyera span:nth-child(even){background:#c7372c}
+
+/* Targetes */
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+.note{margin:8px 0 0;font-size:14px;color:var(--muted)}
+.mode{font-size:13px;color:var(--muted);text-align:center;margin:0}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 5px}
+select,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:9px 11px}
+.row{display:flex;gap:8px;margin-top:10px}
+.btn{font:inherit;font-weight:800;color:#fff;background:var(--btn);border:0;border-bottom:4px solid var(--btn-deep);border-radius:10px;padding:9px 14px;cursor:pointer}
+.btn:active{transform:translateY(2px);border-bottom-width:2px}
+.ghost{font:inherit;font-weight:600;color:var(--pine);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.err{color:var(--bad);font-size:14px;margin:6px 0 0}
+.opts{display:grid;gap:8px;margin-top:12px}
+.opt{font:inherit;text-align:left;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card))}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--card))}
+.opt:disabled{cursor:default;opacity:1}
+.qt{font-family:var(--display);font-size:13px;color:var(--pine);margin:0 0 4px;letter-spacing:.5px}
+.q{margin:0;font-weight:600}
+.res{margin:10px 0 0;font-size:15px}
+.bul{border:2px solid var(--ink);border-radius:12px;padding:12px}
+.bul .hd{font-family:var(--display);font-size:13px;letter-spacing:1px;margin:0;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.stat span{display:block;font-size:12.5px;color:var(--muted)}
+.stat b{font-family:var(--display);font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.rec{margin:0;font-size:14px;font-style:italic}
+.secret{border:2px dashed var(--red);border-radius:12px;padding:12px;margin-top:10px}
+.secret .who{font-family:var(--display);font-size:22px;margin:0}
+.secret p{margin:6px 0 0;white-space:pre-line}
+ol,ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+li{display:flex;justify-content:space-between;gap:10px;font-size:15px}
+li .n{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.rank li:first-child span:first-child::after{content:" · padrí del Tió";color:var(--pine);font-weight:700}
+.diary li{justify-content:flex-start;gap:8px;align-items:flex-start}
+.diary li .n{margin-left:auto}
+.gifts{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:10px 0}
+.gifts svg{width:34px;height:34px;animation:pop .5s ease-out both}
+@keyframes pop{from{transform:translateY(-30px) scale(0);opacity:0}}
+.diploma{border:4px double var(--gold);border-radius:12px;padding:16px;text-align:center}
+.diploma h3{font-family:var(--display);font-size:24px;margin:0 0 6px}
+.diploma p{margin:6px 0 0}
+.foot{font-size:14px;color:var(--muted);text-align:center;margin:0}
+.foot a{color:var(--pine);font-weight:600}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.flake,.bite,.munch,.whack,.gifts svg,.notes{animation:none}.bite,.notes{display:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// Problemes del dia: del 26 de novembre (índex 0) al 10 de desembre (índex 14). "a" és l'índex de la resposta correcta.
+var PREGUNTES=[
+ {t:'Incidència de gana',q:'A les 9 h, cap dels 28 alumnes del màster té gana. A les 11 h, 7 ja en tenen. Quina és la incidència acumulada de gana en aquestes dues hores?',o:['7%','25%','28%','33%'],a:1,e:'Casos nous / població a risc al començament: 7/28 = 25%.'},
+ {t:'Prevalença d\'indigestió',q:'Al dinar de Sant Esteve hi ha 50 convidats. Ara mateix, 12 tenen indigestió de canelons. Quina és la prevalença puntual?',o:['12%','24%','38%','50%'],a:1,e:'Casos existents en un moment / població total: 12/50 = 24%. Compta tots els casos, nous i antics.'},
+ {t:'Torró dur i queixals',q:'En una cohort, 40 de 100 persones que mengen torró dur tenen mal de queixal, i 10 de 100 que mengen torró tou. Quin és el risc relatiu?',o:['0,25','3','4','30'],a:2,e:'RR = 0,40 / 0,10 = 4. Qui menja torró dur té 4 vegades més risc de mal de queixal.'},
+ {t:'El bastó funciona?',q:'Dels tions colpejats amb bastó, el 60% caguen regals; dels que no, només el 20%. Quina és la diferència de riscos?',o:['3','40 punts percentuals','60%','80%'],a:1,e:'Diferència de riscos = 60% − 20% = 40 punts percentuals. El quocient (3) seria el RR.'},
+ {t:'Tions esquerdats',q:'Estudi cas-control. Tions esquerdats (casos): 30 molt colpejats i 10 poc. Tions sencers (controls): 20 molt colpejats i 40 poc. Quina és l\'odds ratio?',o:['1,5','3','6','12'],a:2,e:'OR = (30 × 40) / (10 × 20) = 1.200 / 200 = 6.'},
+ {t:'Brot al sopar d\'empresa',q:'Dels que van menjar canelons, 30 de 40 es van posar malalts; dels que no, 5 de 40. Dels que van menjar torró, 18 de 40; dels que no, 17 de 40. Quin aliment és el sospitós?',o:['Canelons','Torró','Tots dos igual','Cap'],a:0,e:'Taxa d\'atac amb canelons 75% vs 12,5% sense. Amb torró 45% vs 42,5%: gairebé no hi ha diferència.'},
+ {t:'Detector de regals',q:'Un detector de regals es prova en 50 tions que sí que en porten a dins: dona positiu en 45. Quina és la sensibilitat?',o:['10%','45%','90%','100%'],a:2,e:'Sensibilitat = VP / (VP + FN) = 45/50 = 90%.'},
+ {t:'Tions buits',q:'El mateix detector es prova en 100 tions buits: dona negatiu en 80. Quina és l\'especificitat?',o:['20%','80%','90%','100%'],a:1,e:'Especificitat = VN / (VN + FP) = 80/100 = 80%.'},
+ {t:'Positiu: hi ha regal?',q:'El detector dona 60 positius: 45 són tions amb regal i 15 són tions buits. Quin és el valor predictiu positiu?',o:['25%','45%','75%','90%'],a:2,e:'VPP = VP / (VP + FP) = 45/60 = 75%.'},
+ {t:'La manta salva tions',q:'Sense manta, el 30% dels tions es refreden; amb manta, el 10%. Quants tions cal tapar perquè un no es refredi (NNT)?',o:['2','5','10','20'],a:1,e:'Reducció absoluta del risc = 30% − 10% = 20%. NNT = 1 / 0,20 = 5.'},
+ {t:'Grip dels tions',q:'La grip dels tions té una R0 de 5. Quin percentatge de tions cal immunitzar per assolir la immunitat de grup?',o:['20%','50%','80%','95%'],a:2,e:'Llindar = 1 − 1/R0 = 1 − 1/5 = 80%.'},
+ {t:'Troncs tallats',q:'Se segueixen 10 tions durant 20 dies cadascun i n\'acaben tallats 4 per fer llenya. Quina és la taxa d\'incidència?',o:['0,4 per 100 tió-dies','2 per 100 tió-dies','4 per 100 tió-dies','20 per 100 tió-dies'],a:1,e:'4 casos / (10 × 20) tió-dies = 4/200 = 2 per 100 tió-dies.'},
+ {t:'Cantar ajuda?',q:'Les famílies que canten més nadales aconsegueixen més regals del Tió, però també són les que li donen més menjar. Què és el menjar en aquesta associació?',o:['Un factor de confusió','Un modificador de l\'efecte','Un biaix de memòria','La variable resultat'],a:0,e:'El menjar s\'associa amb cantar i, independentment, amb els regals: és un factor de confusió.'},
+ {t:'Recordar el menjar',q:'Les famílies amb un Tió que no ha cagat res recorden amb molt detall què li van donar; les altres no s\'hi fixen tant. Quin biaix és?',o:['Biaix de selecció','Biaix de memòria','Confusió','Error aleatori'],a:1,e:'Els casos recorden l\'exposició diferent que els controls: biaix de memòria (record).'},
+ {t:'Letalitat a la llar de foc',q:'Hi ha 200 tions amb la grip dels tions i 4 acaben a la llar de foc. Quina és la letalitat?',o:['0,4%','2%','4%','20%'],a:1,e:'Letalitat = morts / casos = 4/200 = 2%.'}
+];
+
+var SECRET={"names": ["Ana", "Cesc", "Cristina", "Dan", "David", "Elena", "Elisa", "Emma", "Gabriela", "Irati", "Irene Ma.", "Irene Mo.", "João", "Laura", "Loubna", "Luciana", "Mar", "Marcela", "Maria", "Marina", "Martina", "Maylin", "Miquel", "Sara", "Sofía", "Sophie", "Trilce", "Vanessa"], "vault": {"Ana": {"s": "rDDiakUlRzZlYTY7s3/b+A==", "i": "ZGaJzkELvpou9Nnf", "c": "taQLIaH0H9+Z+wuDMVJLfS843gByB9Ex0xj/Ucaq4S0b84bbGgfKz9a02RwSOShKRODOaXWrirvVlS7uY14zwbjRUkbRd/zR7XWbVgD2rffoGme70gc="}, "Cristina": {"s": "KZ8VRT0tDOUlJ9c2nQKWcg==", "i": "/qub8lLn/3keykVb", "c": "kPnidsmBgl0rH+fNHy7w9mmtoPW10jhQrT8083CtSTunIf9pIe5vd97lEJcJxis55dEUqaGDV3Fkkx7QuTxQa80GdUh73h7OsrSzuv/v5dW30w3BjkBjEYfeZtAsZwd+4qDaoAZrBU+f0v/oQv/KDveWU6cBDidv7tQFRFhqQn3793Un9rlOel0+kHKxvlz/Df4qvz9SuiHklO4+bBzN7hznAvDiX8ds3qdDC+v4DuaOYtmlKvMf6e4dWm16WZc8Sdr6q9/lH5dg9x4yPFy3rdAS4hlyAXCkrPVMU404vhY2nSv+1dANh3rjzjZAYaRDUVO6hGVY1qtLY6c/r08cFfECpdeSGM/xmhFSGO6leOD46RheAO10I7O3q+PVJHSR"}, "Dan": {"s": "w8pkpt8nmPHY1lBBhHouzw==", "i": "ofgyfLFz+4DEKRWq", "c": "BhLwQ929wWnPpOf7lhDE5gkDhCNRaxn/9l07/aPSL7KQJDmq/KjafIr9Ep6rP/82cH6qH3FHfCF1Sl9HvMkk88t1t8LZRT3N8T1X9TI2vKi9Js80CwZsypdF2b9W4WNhFtw+KmNJohJNLMbhc94OkA=="}, "David": {"s": "UsOPspPflUxg0FR+pDThKw==", "i": "hGmM4n5+2FTmtPrs", "c": "rGDzOEWc6KIsmRZgtPKtCXAO8yGQsrHGkwLWISB/7k3mUIwr8FQqiVcN854Mha2RKEFVoxon+z1s4zU2G4LPCrQnPlJetxCMDwrkfsgJjXXbBwKtZo8b+spx0Naj/jme8z8siek/L3TqqAehkm/j2HaOre5Tk7TD1acC9RK+RDQ1JUIG3Fe8umKmnEh38g=="}, "Elena": {"s": "8R57GRfzDSm8sceoQ+6nlQ==", "i": "BdbhANgjVlD+OZyj", "c": "CaellcJ6HMA5uRQeFpWuUIX3A2TsDjopBkHe/EJCSdJUGcmv2fREAbcsAJpX/4oTsWhW5VOOUEeRmPVBnYwpX3+VOnIpCBIRv1ZabD+4hrSJMkaazCknzETASK6iD79Eeyihpzq4wStTC0HdiRgpbhha+Z7FoQSAW62DSqPzgzTRVYZ0K0HVj/58GLZOqxWt8S9VcVfscVYITi57X4N8UX4dJlQT8tKBY76/frsQwqs="}, "Elisa": {"s": "zM0mYFGQUy/TQbqWDall/Q==", "i": "/STDTnfUG128G9mg", "c": "gb61A6Da1rjy67nIbDBLWqq6aZGcBWPLf7Ut/SLDeTg2kCdNSmmLGvl7a0LFt3zbja6DW0VcaRLXIQOMtCrGLOoT7BV27P0FKz91n77tyu0PgiuZZcoK/1NiGspYwHxg+QqVuR0ubBaO"}, "Emma": {"s": "AuF6gcwPvp55FMVe3SXHwg==", "i": "SoJR+stX5/axrt+6", "c": "NBvT6P+D2jtB2JZz2IL3Yv3NwkCUTVGh0Mrg3Rpqj6GfTBCi1WfBfCYpjNWHhRxgS1nQG+sZ4g6hpipSCMq7jGIPLXCOJDT5QSl4Ow=="}, "Gabriela": {"s": "XSWrL90knBmaP+kbMSF4qg==", "i": "fjJTsNfXIkNfuaOD", "c": "cwBhZHyS/yNBPPeQ7oY0itZNEl34KYVrYz20OoInwi0JkG2pYx952BuRGt4RQiCkD2gf7djmLeCg28k4IM0nKzsaeqK3vJdDdzSwBE0VKCTMXt1WDgI437lD/1sF"}, "Irati": {"s": "SFPGZrpTiqHHFrxGlC2CLw==", "i": "lORWtANG0GTt6Hrm", "c": "1JbVWAmqInIZaVAMOH3O5uMg77eoZpIPXT8JZ42gr2ZKrUdfrs+IGK32iGUUQjNaMqY9gAkDZeZ2ew=="}, "Irene Ma.": {"s": "GFBOUp2TncepyGf5M/eagQ==", "i": "1L5gFd9lWp6jc063", "c": "bZae3RvlqMW0ORBE6jjDhNKmN3fipLcw7u7EkydJazIa0Y/EYjuGZO3aBb58wqyqcKRsdhxoMn6KXrlfNyp4MHc4tb33LmJ2O5IRKcBfr1gyHXhtIS0y0xmppq85aUjQQdkEZTh4iBWjkfeGhxLFaBZE/I3E/lIy9Pj8/krEUQ7bNL0ojOX+QokehUYr0gfsNRat2Rg1ptPr+7m6E7c6yw87dFPTJaUIkE69LpE2ufcf6wnvWOqkXI8XXjYr+jpp+QtFmmNdl352u3R4wSy30B3h2qOljELYuWwRuyAXXG0q+e8wvvLUEAVkkFK3elg+blDahQZqTb5Mv4NvlszyPhDIIWuwe1h2Z0y6pIHV1TAAK2r1OORHf772XjtZrYKVdDwuqCEg5OoAKLwcnIcejei6hu5FMzXDS4DSkfojKL3wTi7Xuka+LCe2ymDvZVB9676BtzCGX/YyKbj8qzhbKtTxLe0bGHkl4Q5D5FFbecAFmFTfcp+ST0gIGqZoXLiIfkHWlfVroXfPCWkaPVJHGg+GN2QX2G30htf2yld0ra1XT3XzK8ZrcwhhH4P0UYtLzWo5u43HZUsJH7tHiYZstv9+T9Qdb8pWxfBHxzMej6xnw+7Eu/4WiyxEdn7SYFYaMASGqEDMmpdJvS+1vP242AwmaMbQGhBC8PhDv6p4O9oClgv7XjdQpmSawjQh0rGMTMtn4D7t2WNaJjWd2feCtGgxU3hkfM5DhgNTRQ6VIp8="}, "Irene Mo.": {"s": "xZf+0HfnL78DA7wOVKHpeQ==", "i": "bHwJoBk0EDXVaV2A", "c": "9P8wadg+3MFO9+9OM4ytJTeGCPt6HkVhLdD7sXyABAmZ/gJnvSADxPa9Atudy4HulKVLb6TkMYAnAScrI8z1wKJbiPYHrVQ1XPo="}, "João": {"s": "jH6kh+9qzdTBq67MvYtK4A==", "i": "Srlh7t8929GE/G2K", "c": "mj7hanw2HxmRjk7z1yKHD8QZA3Cauc+HW/yoCzetN3nuxG+bJHoCVPVD3TRTur/foXYyHSKZ3kLyFdf3kJ32/hUg+QskBrFzhXjYHIPUgYidpy4z9/pOyqF7Wo0JO1SrDKmTsndOV7r/QZATGaPRksrxuKY6S+ItcMZoi107Hl+RupFzS76U7DkDrD37Rdw="}, "Laura": {"s": "X4Ugip9lRTBrd7rGZZ8e9Q==", "i": "/YeBi+SVgBbdWA1r", "c": "35xKyNWjj3V7DaPuZeb3Cfg4QI2jaG6viK9daAMoAHWin3nf5rWjysF7OpbhSvP2DOVLa31dnJgqDyzrOnzSVDy93vTvUefgf55hLL4DdEtCTdOClGbbymTaSjWHSuUuGiXeuAjivmQh/cMzLnfmOZDj6dyyuTrZxE/k7l8W0CNXcZqC8WZIq287YndFRmNHL3WZFMlNLb8Kwmyup5T5J3HHBTw1WgUyHJK0m/Qg9eONmUO03xjGOzq8Fv4bA2t1SMkCp6swGP+AXn4P93Gwg/QkMkVjtvuEtw=="}, "Loubna": {"s": "tWZx1mpHGuxwJPqYF4ZqDw==", "i": "Y4/yhhVrxQ4GZR1a", "c": "ik0JE/H4SlDVX2AoelSvKVDo+dDONYgAbEgFxifz5i0auPzG7l1f2SdoqMmQ+IisJ53lU3z58nuXgxL6qYNFvz2bpiZE8vuHgzdgbPmoXyMF/3QwjotLJ413fzZLSz9JWt7XsnRKdjX+0wdn36b8pA=="}, "Luciana": {"s": "jVZxH4OyhDAeOnsUGYffXg==", "i": "56eaMyHy8Zs1qtlW", "c": "1A7vt8mxcymc+9BMV7XnBmV17Ylm7SXbWwVKbupv5eO9brBdSSz9yj6fM+5AcOLLfuE3gpdHt57b723wZKNWhFz57fl2sUGiUs+yhHIOFvQMhM9XXCEEZlHWRgnGTmI="}, "Mar": {"s": "mWZma3XtMvwPfEOTIOliUg==", "i": "QOzJbhbzltKWe1QX", "c": "NzNs2F+azWqO+Uq3EBfASieppv8b7aCGjZakPbasCnNtiT5DeC8Whc8zMr//yZWtazcbCvjw/mzgseYIMJo/K79K9pp9oBKKVUHYedFPDEDnzdmwxXe9we0="}, "Marcela": {"s": "QlT5n6zMynhRAXZAbOsIsQ==", "i": "hXgp5cE8N9Pg8RPS", "c": "B2heiiiRf8/HFOUu7zEI6yrUvCUdlQjzTcJm+01/46w8BUJTqu4Mz+kf2YGEz/crBEZtz3S9BfAmSQjC6vEfDUB4NtS42bYT7+gojQb8foXHEuvzH2tZVYCy20rgv5ncpQD3kXvmYMmPiuOkBmzCSz0oeapy5Iy9njc5xScqcVFCpQhqQ94q/rufME7T5bHqeWNn6tBHZ/1J/erSuw=="}, "Maria": {"s": "FtEav7ZuN08fy2QqXXcixQ==", "i": "onAJHRGULkr+LugM", "c": "wL9lx+jM44ER9NblrsMwHkhzMGn7lUrdFCPhH8f94WrYikewqsAJHX2kPPaChXuLZH6cPOIp9Bv0zY2vhuHcMhYcAQSVfCZvpqIVUTQ0YgulqY3qf95Iq8Ks"}, "Marina": {"s": "VfSwqlI38HPGkn8YilVNZQ==", "i": "Q8zEUh0ogEPxt2eF", "c": "zjdxEH8IbxHml0IAa1m3EaHvb34wHVNT4Gky0/VyFC2O2f1FAwCLWpJk+yjXGMqm48suHJY8HNvbhfk24Ryk3qjaCHFg3Uj41/o="}, "Martina": {"s": "NKl4+yrN52/kGhcMLsjWRA==", "i": "/7mtn6EUSPmR6mjF", "c": "GtCwpdhitW4qxVOx0y+1iwWwcoPQRHLAab6r3vL44KKFgav4UtBWFgNgpH7FbJ+emanSIuRHIHLUlzVHHoP040T5iRPbOfbsQzAtRI9/ilVA1lvrG8DY/Kmwc08T6PYZ07aXq2xnINEkD52V67yAl8TkD4AZ8cNXD4WlUvjm0cVp4okkHXxUsP0FwL1oxht67Q=="}, "Maylin": {"s": "u2yw+NREomcfoVULaUDpkw==", "i": "nZ2OW/jHJ76kCL3Y", "c": "s7sVhyZ25t0ITgY1ZTQM/QDr8aFTnrU8ZYVjjZop/RX4Lr3NsjqU3tynDBJEWtZimlqQyKXIChVD2xG+KsuWrEsMJrntaNxmlIOnctPW/wMR7IvfCbiiNQ=="}, "Miquel": {"s": "TqFdp2X7zxWLKNb5sxox6w==", "i": "rrzU5/xN1+Kkh1Yy", "c": "guhVt+eLdNyaDhmszO5dO66wff5/nEmGmQQ8bdc5+gdlB729CecF8uLynMNBLCXoqd/EhLvs4p7StPV7yRVyUSrOFwTWCO/uFEjGIFw="}, "Sara": {"s": "O9/7jUEcswwl5nRDoe5+sw==", "i": "7OgAGY8faPQcVHUR", "c": "7z+jMr5Mh9+JGecHxPS1/+X5BxL7Wnjyylmpe9cIDCH1STRpVJNhPq5FX7a85Sd9DQebTiT8oMFKGCvA/I2S+xCQZyHlteJual5tWPTokLp4dtqYpkKOZM8Z8rPm9I83i8koTg6EPrE63OGRuxKMGxE/upSAIcc2N7qMRCkm7jbbXtYnxpbpSOWEXczKd3NUnqL0CyDa9T2CnInyRvgEqlodadrwwWYkQ1u35X+ooKlX6cGsiPYjrKskQnc="}, "Sofía": {"s": "/D4VUoYIzaZVM6Wy9lJ4lg==", "i": "XK8TFqHeTNDb0vX8", "c": "SpRpDpK4etMXg5yqAr6CzvlQS2eUuLoHYLdR/DM053YVqltj4pUkVS7j1M6huz0tdNO1OoID3HCiaSbWjjBNlqToSLmYBV2vhERXvshZ8gOkhVqIQa2zz3z6bcDZG3JpDjPcaKneKNiZHeOzVDXK3rCmju+7xQHRDa7gKpYL+cW/"}, "Sophie": {"s": "9p/kZpcFutWNb8HDWj1bcg==", "i": "f0R5ZRoxyNthdW1Q", "c": "t4hkEOhNMd+93/7Ved9EHPtY/LMT3TIGm0te22lGohIcGnWtP4DgFeYXGiOvgOD20k1UtGe7Hy3z3c3qPE03auJ5h5tkvTnKyB8pKudnMD78k9PIB7Art6G9H5CqXFpCwykM/YOP6KtwTrNmGKwNGQAh0VujgMzSJR1dUz26WpYSeHSYbDcdDbo/olx/AiR6/Os78ysOj9knoPnkyjvD4pKb99eumA9oVr8FS/06HL90bfc495Zn"}, "Trilce": {"s": "xEf1bGvSthkRBCtUEnHY1Q==", "i": "wc+9EvnXd6LFbCjw", "c": "Y4nbLN0+VShMBUWY3L/M5R9T6hE80fgV9L1VuJFEsY0IuFdo3qIrcStciIkuVHUqwVxC+aYqVaXleuKaQevjnwq5d5zgXH0S1I1rK8zL1SOko+dXiWWPEdUfz9Qvrhe7ZUZA1/ug3sm/wOKDF7W3LBFo3jqKnKUBj6tKCTu/nmxF2/fblsHtQwM="}, "Vanessa": {"s": "Ncy8+/Prda3POj2rm2gzkQ==", "i": "U78yt4KhIeF8K7Hr", "c": "OJgwNq1xBUv6ZC4BKS+AVjRCCFaTyJepL/kNEXo1oT+zXF+OGbzFBcZ6C+fiHcBJCev6zO/w+KS82cX9TmTZ7A6IvH84pKkMektY"}, "Cesc": {"s": "j2yQTrR7mDbPqR4ov/a4JQ==", "i": "6DrHWCud6vUcyeV3", "c": "2R305v4zEaax/M3QyCj8ZP2yO1NKkEIAPEzI2O8qMeA7koX/COUJdEPZPQeuh5xtGj02PxfvlQqwkRq8sy3VxbFLgx8BJauNj6Fc"}}};
+// Supabase: omple aquests dos valors quan la base de dades estigui creada. Buits = mode de prova en aquest dispositiu.
+var SB_URL='', SB_KEY='';
+// Cançó de Cantar: posa aquí l’arxiu (per exemple 'canco.mp3'). Buit = melodia de campanetes.
+var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
+</script>
+<script>
+(function(){
+  var FINALE='2026-12-11', FIRSTQ='2026-11-26', TZ='Europe/Madrid', BORN=Date.parse('2026-11-25T20:00:00+01:00');
+  var DEC_P=2, DEC_A=1.5, LS_ME='tiogochi-jo', LS_DEMO='tiogochi-prova';
+  var O='<svg viewBox="0 0 40 40" aria-hidden="true">', C='</svg>';
+  var FOODS=[
+    {id:'torro',n:'Torró',p:20,a:5,say:'Mmm, torró!',
+     i:O+'<path d="M5 17l22-7 9 5v9l-22 8-9-6z" fill="#b98545"/><path d="M5 17l22-7 9 5-22 8z" fill="#f0d59b"/><path d="M14 23l22-8v9l-22 8z" fill="#d8ac66"/><g fill="#fff6dd" stroke="#b98545" stroke-width=".8"><ellipse cx="14" cy="17" rx="3" ry="1.6" transform="rotate(-18 14 17)"/><ellipse cx="23" cy="14.5" rx="3" ry="1.6" transform="rotate(-18 23 14.5)"/><ellipse cx="21" cy="19" rx="3" ry="1.6" transform="rotate(-18 21 19)"/></g>'+C},
+    {id:'mandarina',n:'Mandarina',p:12,a:2,say:'Mandarina! La meva preferida.',
+     i:O+'<ellipse cx="20" cy="23" rx="14" ry="12.5" fill="#f08a1c"/><ellipse cx="15" cy="18" rx="6" ry="3.5" fill="#ffb347" opacity=".8"/><path d="M20 12q7-9 14-5q-4 8-14 5z" fill="#2f8a4e"/><path d="M20 12v-4" stroke="#5b3a1f" stroke-width="2.4" stroke-linecap="round"/>'+C},
+    {id:'castanyes',n:'Castanyes',p:15,a:2,say:'Castanyes ben calentes…',
+     i:O+'<path d="M20 5q4 6 11 10q5 4 4 11q-2 9-15 9t-15-9q-1-7 4-11q7-4 11-10z" fill="#7a4424"/><path d="M6 27q14-7 28 0q-2 8-14 8t-14-8z" fill="#d9b88a"/>'+C},
+    {id:'pa',n:'Pa amb tomàquet',p:18,a:3,say:'Pa amb tomàquet, com a casa.',
+     i:O+'<path d="M5 22q0-12 15-12t15 12v6q0 4-4 4H9q-4 0-4-4z" fill="#b9793a"/><path d="M8 22q0-9 12-9t12 9v5q0 2-2 2H10q-2 0-2-2z" fill="#f2d7a4"/><path d="M10 22q1-6 10-6t10 6q1 5-10 5t-10-5z" fill="#e2452f" opacity=".9"/>'+C},
+    {id:'neules',n:'Neules',p:8,a:8,say:'Crec, crec… neules!',
+     i:O+'<g stroke-linecap="round"><path d="M7 30L27 8" stroke="#b98545" stroke-width="9"/><path d="M7 30L27 8" stroke="#f0d59b" stroke-width="6.5"/><path d="M14 33L34 12" stroke="#b98545" stroke-width="9"/><path d="M14 33L34 12" stroke="#f3dcab" stroke-width="6.5"/></g>'+C},
+    {id:'aigua',n:'Aigua',p:6,a:0,say:'Glup. Gràcies!',
+     i:O+'<path d="M10 7h20l-3 27q-.3 2-2.5 2h-9q-2.2 0-2.5-2z" fill="#eaf6fb" stroke="#7fa9bd" stroke-width="2" stroke-linejoin="round"/><path d="M11.2 17h17.6l-1.8 16.5q-.2 1.5-1.8 1.5h-10.4q-1.6 0-1.8-1.5z" fill="#5cb8e6"/>'+C},
+    {id:'cafe',n:'Cafè',p:3,a:6,say:'Cafè del Campus del Mar! Aquesta nit no dormo.',
+     i:O+'<path d="M8 14h20v10q0 9-10 9t-10-9z" fill="#fff" stroke="#6b4a30" stroke-width="2.2"/><path d="M10 16h16v6q0 6-8 6t-8-6z" fill="#6b3f22"/><path d="M28 17q6 0 6 5t-7 5" fill="none" stroke="#6b4a30" stroke-width="2.4"/><path d="M14 10q-2-3 0-5M20 10q-2-3 0-5" stroke="#9aa" stroke-width="2" fill="none" stroke-linecap="round"/>'+C},
+    {id:'apunts',n:'Apunts d’epi',p:0,a:-10,say:'Apunts d’epidemiologia? Per menjar?!',
+     i:O+'<rect x="8" y="6" width="22" height="28" rx="2" fill="#fff" stroke="#556" stroke-width="2"/><path d="M12 13h14M12 18h14M12 23h10" stroke="#5b82b8" stroke-width="2" stroke-linecap="round"/><path d="M12 28h6" stroke="#c7372c" stroke-width="2" stroke-linecap="round"/>'+C}
+  ];
+  var BROU={id:'brou',n:'Sopa de galets',p:12,a:8,say:'Sopa de galets! Ja em trobo millor!',
+     i:O+'<path d="M5 19h30q0 14-15 14T5 19z" fill="#fff" stroke="#6b4a30" stroke-width="2.2"/><path d="M8 21h24q-1 9-12 9T8 21z" fill="#e8b74a"/><g fill="#fff3c4" stroke="#b98545" stroke-width=".9"><path d="M11 23q2-3 5 0q-2 3-5 0z"/><path d="M19 22q3-3 6 0q-3 3-6 0z"/><path d="M24 26q2-3 5 0q-2 3-5 0z"/><path d="M14 27q2-3 5 0q-2 3-5 0z"/></g><path d="M14 15q-3-4 0-8M20 15q-3-4 0-8M26 15q-3-4 0-8" stroke="#9aa" stroke-width="2" fill="none" stroke-linecap="round"/>'+C};
+  var FOOD={}; FOODS.concat([BROU]).forEach(function(f){FOOD[f.id]=f;});
+  function foods(){return health().sick?[BROU].concat(FOODS):FOODS;}
+  var ICONS=[
+    {n:'Menjar',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3M17 3c-2 2-3 5-3 8h3v10"/></svg>'},
+    {n:'Cantar',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>'},
+    {n:'Problema',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M10 9a2.5 2.5 0 1 1 3 2.4c-.6.2-1 .7-1 1.3V14M12 17h.01"/></svg>'},
+    {n:'Butlletí',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 20h16M7 16v-5M12 16V6M17 16v-8"/></svg>'},
+    {n:'Joc',i:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="2" y="7" width="20" height="11" rx="5"/><path d="M7 11v3M5.5 12.5h3M15 11.5h.01M18 13.5h.01"/></svg>'}
+  ];
+  function gift(c1,c2){return O+'<rect x="6" y="15" width="28" height="20" rx="2" fill="'+c1+'"/><rect x="4" y="10" width="32" height="7" rx="2" fill="'+c1+'"/><rect x="17.5" y="10" width="5" height="25" fill="'+c2+'"/><path d="M20 10q-9-9-10-2q0 3 10 2zM20 10q9-9 10-2q0 3-10 2z" fill="'+c2+'"/>'+C;}
+  var GIFTS=[gift('#c7372c','#f0b842'),gift('#1f5c46','#fff4dc'),gift('#e3a626','#c7372c'),gift('#3f7fb5','#fff4dc')];
+  var RECS=['Mantenir una ingesta regular de mandarines i garantir l’accés universal a la manta.',
+    'Es recomana cantar al Tió com a mínim un cop al dia: la salut mental del tronc també compta.',
+    'Evitar l’exposició del Tió als apunts d’epidemiologia fora de l’horari lectiu.',
+    'Reforçar la vigilància de la gana entre les 11 h i les 14 h, franja de màxima incidència.',
+    'La salut del Tió és una responsabilitat col·lectiva. Cap tronc enrere.'];
+
+  // Noms curts per al diari i el rànquing
+  var NAMES=SECRET.names.slice(), SHORT={};
+  (function(){var c={};NAMES.forEach(function(n){var f=n.split(' ')[0];c[f]=(c[f]||0)+1;});
+    NAMES.forEach(function(n){var p=n.split(' ');SHORT[n]=c[p[0]]>1&&p[1]?p[0]+' '+p[1]:p[0];});})();
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+  function dayKey(t){return new Date(t).toLocaleDateString('sv-SE',{timeZone:TZ});}
+  function H(){return location.hash;}
+  function today(){return H()==='#dia11'?FINALE:dayKey(Date.now());}
+  function hourNow(){return H()==='#nit'||H()==='#destapat'?2:H()==='#dia'||H()==='#costipat'?12:+new Date().toLocaleString('en-GB',{timeZone:TZ,hour:'2-digit',hour12:false}).slice(0,2);}
+  function isFin(){return today()>=FINALE;}
+  function daysLeft(){return Math.round((Date.parse(FINALE)-Date.parse(today()))/864e5);}
+  function qIndex(){var d=Math.round((Date.parse(today())-Date.parse(FIRSTQ))/864e5);return Math.max(0,Math.min(PREGUNTES.length-1,d));}
+  function ago(t){var m=Math.max(0,Math.round((Date.now()-t)/6e4));
+    if(m<1)return 'ara'; if(m<60)return 'fa '+m+' min'; var h=Math.round(m/60); if(h<24)return 'fa '+h+' h';
+    var d=Math.round(h/24); return 'fa '+d+(d===1?' dia':' dies');}
+
+  // ---------- Dades: Supabase o mode de prova ----------
+  var EV=[], SB=!!(SB_URL&&SB_KEY);
+  function hdr(){var h={'apikey':SB_KEY,'Content-Type':'application/json'}; if(/^eyJ/.test(SB_KEY))h['Authorization']='Bearer '+SB_KEY; return h;}
+  function load(){
+    if(!SB){try{EV=JSON.parse(lsGet(LS_DEMO)||'[]')||[];}catch(e){EV=[];} return Promise.resolve();}
+    return fetch(SB_URL+'/rest/v1/events?select=*&order=t.asc',{headers:hdr()}).then(function(r){if(!r.ok)throw r;return r.json();})
+      .then(function(rows){EV=rows;netErr=false;},function(){netErr=true;});
+  }
+  function add(k,v,c){
+    var e={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),who:me.name,k:k,v:v,c:(c==null?null:c),t:Date.now()};
+    EV.push(e);
+    if(!SB){lsSet(LS_DEMO,JSON.stringify(EV));return Promise.resolve();}
+    return fetch(SB_URL+'/rest/v1/events',{method:'POST',headers:Object.assign(hdr(),{'Prefer':'return=minimal'}),body:JSON.stringify(e)})
+      .then(function(r){if(!r.ok)throw r;},function(){netErr=true;render();});
+  }
+  var netErr=false;
+
+  // ---------- Estat del Tió ----------
+  function status(at){
+    var p=55,a=60,t=BORN;
+    for(var i=0;i<EV.length;i++){var e=EV[i]; if(e.t>at)break; var dt=Math.max(0,e.t-t)/36e5;
+      p=Math.max(0,p-dt*DEC_P); a=Math.max(0,a-dt*DEC_A); t=Math.max(t,e.t);
+      if(e.k==='feed'){var f=FOOD[e.v]||{p:10,a:0}; p+=f.p; a+=f.a;}
+      else if(e.k==='sing') a+=15;
+      else if(e.k==='quiz'&&e.v==='1') a+=5;
+      p=Math.min(100,p); a=Math.max(0,Math.min(100,a));}
+    var dt2=Math.max(0,at-t)/36e5;
+    return {p:Math.round(Math.max(0,p-dt2*DEC_P)),a:Math.round(Math.max(0,a-dt2*DEC_A))};
+  }
+  function mine(k,day){return EV.filter(function(e){return me&&e.who===me.name&&e.k===k&&dayKey(e.t)===day;});}
+  function allow(){
+    var d=dayKey(Date.now()), q=mine('quiz',d)[0];
+    return {feed:1+(q&&q.v==='1'?1:0)-mine('feed',d).filter(function(e){return e.v!=='brou';}).length, sing:1-mine('sing',d).length, quiz:q||null};
+  }
+  // Algunes nits (decidit per la data, igual per a tothom) la manta cau entre les 23:30 i les 6:30.
+  // Si ningú el tapa abans de les 8:00, es costipa fins que algú li dona sopa de galets.
+  var FIRST_NIGHT='2026-11-25';
+  function hsh(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+  function fallOf(D){ if(D>='2026-12-10')return null; var h=hsh('manta'+D); if(h%100>=55)return null;
+    var t=Date.parse(D+'T23:30:00+01:00')+(hsh('hora'+D)%420)*6e4; return {t:t,dl:Date.parse(D+'T08:00:00+01:00')+864e5}; }
+  function health(){
+    if(H()==='#destapat')return {fallen:true,sick:null}; if(H()==='#costipat')return {fallen:false,sick:Date.now()-3*36e5};
+    var now=Date.now(), sick=null, fallen=false, D=FIRST_NIGHT, last=dayKey(now-8*36e5);
+    function cured(from,to){return EV.some(function(e){return e.k==='feed'&&e.v==='brou'&&e.t>=from&&e.t<to;});}
+    while(D<=last){
+      var f=fallOf(D);
+      if(f){ if(now<f.t)break;
+        if(sick&&cured(sick,f.t))sick=null;
+        var cov=EV.some(function(e){return e.k==='tapa'&&e.t>=f.t&&e.t<f.dl;});
+        if(!cov){ if(now<f.dl){fallen=true;break;} if(!sick)sick=f.dl; } }
+      D=dayKey(Date.parse(D+'T12:00:00+01:00')+864e5);
+    }
+    if(sick&&cured(sick,now+1))sick=null;
+    if(isFin())return {fallen:false,sick:null};
+    return {fallen:fallen,sick:sick};
+  }
+  function coffee(){var t=Date.now()-8*36e5;return EV.some(function(e){return e.k==='feed'&&e.v==='cafe'&&e.t>t;});}
+
+  // ---------- El Tió (SVG) ----------
+  function growth(){var n=EV.filter(function(e){return e.k==='feed';}).length;return Math.min(64,Math.round(n*0.22));}
+  function level(){var n=EV.filter(function(e){return e.k==='feed';}).length;return n<40?'Tronquet':n<120?'Tió':n<220?'Tió gras':'Tió reial';}
+  function tioSvg(o){
+    var gx=o.grow==null?growth():o.grow, rx=236+gx, mx=(150+rx)/2, eyes, mouth, extra='';
+    function eye(cx,cy){return '<ellipse cx="'+cx+'" cy="'+cy+'" rx="3.4" ry="5" fill="#1c1c1c"/><circle cx="'+(cx-1)+'" cy="'+(cy-1.8)+'" r="1.1" fill="#fff"/>';}
+    function lid(cx,cy){return '<path d="M'+(cx-4.5)+' '+cy+'q4.5 4 9 0" fill="none" stroke="#1c1c1c" stroke-width="2.4" stroke-linecap="round"/>';}
+    var sad=o.mood==='famolenc'||o.mood==='enfadat';
+    eyes=o.sleep?lid(79,107)+lid(100,105):eye(79,106)+eye(100,104);
+    if(o.mood==='enfadat'&&!o.sleep) eyes+='<path d="M72 97l12 4M107 95l-12 4" stroke="#5a3e2b" stroke-width="2.6" stroke-linecap="round"/>';
+    else if(sad&&!o.sleep) eyes+='<path d="M73 98l10-3M106 96l-10-3" stroke="#6b4a2e" stroke-width="2.4" stroke-linecap="round"/>';
+    if(o.eat) mouth='<ellipse cx="90" cy="140" rx="8" ry="7.5" fill="#7a2a22"/><ellipse cx="90" cy="143" rx="5" ry="3.4" fill="#d9665a"/>';
+    else if(o.sing) mouth='<ellipse cx="90" cy="139" rx="6" ry="7" fill="#7a2a22"/>';
+    else if(o.sleep) mouth='<path d="M80 136Q90 141 100 134" fill="none" stroke="#7a5233" stroke-width="2.6" stroke-linecap="round"/>';
+    else if(sad) mouth='<path d="M76 143Q90 133 104 141" fill="none" stroke="#7a5233" stroke-width="2.8" stroke-linecap="round"/>';
+    else if(o.mood==='content'||o.mood==='tip') mouth='<path d="M71 131Q90 153 109 128" fill="none" stroke="#7a5233" stroke-width="3" stroke-linecap="round"/><circle cx="70" cy="126" r="5" fill="#f08a7a" opacity=".45"/><circle cx="110" cy="123" r="5" fill="#f08a7a" opacity=".45"/>';
+    else mouth='<path d="M74 134Q90 145 106 131" fill="none" stroke="#7a5233" stroke-width="2.8" stroke-linecap="round"/>';
+    if(o.mood==='famolenc'&&!o.eat&&!o.sleep) extra='<path d="M108 111q4 7 0 11q-4-4 0-11" fill="#8fd0ee"/>';
+    if(o.cold) extra+='<g stroke="#8fd0ee" stroke-width="3" stroke-linecap="round" fill="none"><path d="M48 92q-6 6 0 12M42 112q-6 6 0 12M52 140q-6 6 0 12"/><path d="M132 66q6 6 0 12"/></g><ellipse cx="89" cy="118" rx="28" ry="44" fill="#8fd0ee" opacity=".18"/>';
+    var mocs=o.sick?'<path d="M70 127q-3 9 1 14q5-4 2-14z" fill="#9fd36b" stroke="#6a9d3c" stroke-width="1.2"/><circle cx="69" cy="108" r="4" fill="#f08a7a" opacity=".55"/>':'';
+    var simple='<path d="M152 72L'+(rx+4)+' 79Q'+(rx+18)+' 112 '+(rx+10)+' 158Q'+mx+' 168 148 156Q143 112 152 72Z" fill="#5b82b8" stroke="#2f4f7d" stroke-width="2.5" stroke-linejoin="round"/>'+
+      '<path d="M151 150Q'+mx+' 161 '+(rx+8)+' 152" fill="none" stroke="#f4efe0" stroke-width="3" stroke-dasharray="4 5"/>';
+    function g(x,y,w,h,c1,c2){return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="2" fill="'+c1+'" stroke="#3a2a20" stroke-width="1.5"/><rect x="'+(x+w/2-3)+'" y="'+y+'" width="6" height="'+h+'" fill="'+c2+'"/><path d="M'+(x+w/2)+' '+y+'q-9-10-11-2q0 4 11 2zM'+(x+w/2)+' '+y+'q9-10 11-2q0 4-11 2z" fill="'+c2+'"/>';}
+    var gifts=g(150,182,30,24,'#1f5c46','#f0b842')+g(196,186,26,20,'#c7372c','#fff4dc')+g(234,180,32,26,'#e3a626','#c7372c')+g(262,192,22,16,'#3f7fb5','#fff4dc');
+    var sup='<path d="M150 69L'+(rx+6)+' 77Q'+(rx+24)+' 122 '+(rx+15)+' 193Q'+mx+' 206 146 191Q139 130 150 69Z" fill="url(#manta)" stroke="#7d1f18" stroke-width="2.5" stroke-linejoin="round"/>'+
+      '<path d="M'+(mx-30)+' 80Q'+(mx-36)+' 140 '+(mx-32)+' 196M'+(mx+34)+' 82Q'+(mx+42)+' 140 '+(mx+38)+' 196" fill="none" stroke="#000" stroke-width="2" opacity=".14"/>';
+    var night=o.night?'<circle cx="270" cy="-14" r="12" fill="#f6eecb"/><circle cx="276" cy="-18" r="11" fill="#22344a"/><g fill="#f6eecb"><circle cx="40" cy="-20" r="1.6"/><circle cx="120" cy="-28" r="1.3"/><circle cx="200" cy="-10" r="1.6"/><circle cx="300" cy="20" r="1.3"/><circle cx="20" cy="30" r="1.3"/></g>'+(o.sleep?'<text x="146" y="18" font-size="18" fill="#f6eecb" font-family="monospace">z z z</text>':''):'';
+    return '<svg class="tio" viewBox="0 -40 320 264" role="img" aria-label="El Tió'+(o.b==='super'?' amb la supermanta':o.b==='simple'?' dormint amb la manta':'')+'">'+
+      '<defs><linearGradient id="escorca" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9c7a5c"/><stop offset=".5" stop-color="#7a5a42"/><stop offset="1" stop-color="#4a3528"/></linearGradient>'+
+      '<radialGradient id="fusta" cx=".4" cy=".38" r=".75"><stop offset="0" stop-color="#fdf3d6"/><stop offset="1" stop-color="#e6c489"/></radialGradient>'+
+      '<linearGradient id="roig" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2463b"/><stop offset="1" stop-color="#9c1d17"/></linearGradient>'+
+      '<pattern id="manta" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(4)"><rect width="26" height="26" fill="#c7372c"/><rect width="9" height="26" fill="#5f8a3a" opacity=".9"/><rect width="26" height="9" fill="#5f8a3a" opacity=".75"/><rect x="16" width="2" height="26" fill="#fff4dc" opacity=".8"/><rect y="16" width="26" height="2" fill="#fff4dc" opacity=".8"/></pattern></defs>'+
+      night+'<ellipse cx="160" cy="216" rx="200" ry="28" fill="#ffffff"/><ellipse cx="'+(172+gx/2)+'" cy="206" rx="'+(106+gx/2)+'" ry="8" fill="#1c2a27" opacity=".15"/>'+
+      '<g class="'+(o.eat||o.sing?'munch':o.whack?'whack':'')+'">'+
+      '<path d="M'+(200+gx*.85)+' 154L'+(194+gx*.85)+' 200M'+(222+gx*.85)+' 152L'+(228+gx*.85)+' 198" stroke="#5a3a26" stroke-width="7" stroke-linecap="round"/>'+
+      '<path d="M82 158L72 207M104 162L109 209" stroke="#5a3a26" stroke-width="10" stroke-linecap="round"/><path d="M82 158L72 207M104 162L109 209" stroke="#9a6a48" stroke-width="5.5" stroke-linecap="round"/>'+
+      '<path d="M92 71L'+rx+' 79Q'+(rx+17)+' 119 '+rx+' 159L92 166Z" fill="url(#escorca)" stroke="#3a2a20" stroke-width="3" stroke-linejoin="round"/>'+
+      '<g stroke="#3a2a20" stroke-linecap="round" fill="none" opacity=".5" stroke-width="2.4"><path d="M128 84q14-3 30 1M172 90q18-3 '+(34+gx)+' 2M126 104q20 3 38-1M178 110q12-3 '+(26+gx*.6)+' 0M130 126q16-3 34 1M176 132q20 3 '+(40+gx)+' 0M128 148q22 3 42-1"/></g>'+
+      (o.b==='super'?gifts:'')+(o.b==='super'?sup:o.b==='simple'?simple:'')+
+      '<path d="M100 60Q96 28 124 20Q158 13 166 38Q168 52 154 53Q150 40 138 42Q128 46 136 64Z" fill="url(#roig)" stroke="#6f1712" stroke-width="2.5" stroke-linejoin="round"/>'+
+      '<path d="M108 52Q106 32 126 27" fill="none" stroke="#fff" stroke-width="3" opacity=".22" stroke-linecap="round"/>'+
+      '<path d="M92 72Q94 55 122 55Q152 57 154 77Q124 88 92 72Z" fill="#24272c" stroke="#101214" stroke-width="2"/>'+
+      '<ellipse cx="91" cy="118" rx="33" ry="49" fill="#5a4332" stroke="#3a2a20" stroke-width="2.5"/><ellipse cx="89" cy="118" rx="28" ry="44" fill="url(#fusta)"/>'+
+      '<g fill="none" stroke="#d2a86a" opacity=".6"><ellipse cx="89" cy="118" rx="21" ry="34" stroke-width="1.5"/><ellipse cx="89" cy="118" rx="13" ry="22" stroke-width="1.3"/><ellipse cx="89" cy="118" rx="6" ry="10" stroke-width="1.1"/></g>'+
+      eyes+extra+mouth+
+      '<path d="M90 119L66 122" stroke="#7d1f1a" stroke-width="14" stroke-linecap="round"/><path d="M90 118L66 121" stroke="'+(o.sick?'#d9453c':'#b23a33')+'" stroke-width="10" stroke-linecap="round"/><path d="M84 115L68 117" stroke="#e0706a" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>'+mocs+
+      (o.b==='super'?g(20,186,26,22,'#3f7fb5','#f0b842'):'')+
+      '</g></svg>';
+  }
+
+  // ---------- Cançó (sona en prémer Cantar) ----------
+  var bg={ac:null,audio:null,g:null};
+  // Jingle Bells (domini públic), en Do. [nota Hz, temps]
+  var E=330,G=392,Cc=262,D=294,F=349,TUNE=[[E,1],[E,1],[E,2],[E,1],[E,1],[E,2],[E,1],[G,1],[Cc,1.5],[D,.5],[E,4],[F,1],[F,1],[F,1.5],[F,.5],[F,1],[E,1],[E,1],[E,.5],[E,.5],[E,1],[D,1],[D,1],[E,1],[D,2],[G,2],
+    [E,1],[E,1],[E,2],[E,1],[E,1],[E,2],[E,1],[G,1],[Cc,1.5],[D,.5],[E,4],[F,1],[F,1],[F,1],[F,1],[F,1],[E,1],[E,1],[E,.5],[E,.5],[G,1],[G,1],[F,1],[D,1],[Cc,4],[0,2]];
+  function bell(ac,f,t,len,vol,out){
+    var g=ac.createGain();g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+len);g.connect(out);
+    [[1,'triangle'],[2,'sine'],[3,'sine']].forEach(function(h,i){var o=ac.createOscillator();o.type=h[1];o.frequency.value=f*h[0];
+      var gg=ac.createGain();gg.gain.value=[1,.35,.12][i];o.connect(gg);gg.connect(g);o.start(t);o.stop(t+len+.05);});
+  }
+  function playSong(){
+    stopSong();
+    try{
+      if(MUSIC_SRC){ if(!bg.audio){bg.audio=new Audio(MUSIC_SRC);} bg.audio.currentTime=0; bg.audio.loop=false; var pr=bg.audio.play(); if(pr&&pr.catch)pr.catch(function(){});
+        bg.audio.onended=function(){clearTimeout(singT);singing=false;render();}; return 29000; }
+      var A=window.AudioContext||window.webkitAudioContext; if(!A)return 1700; if(!bg.ac)bg.ac=new A(); if(bg.ac.resume)bg.ac.resume();
+      var ac=bg.ac, t=ac.currentTime+.08, beat=.24, total=0;
+      bg.g=ac.createGain(); bg.g.gain.value=1; bg.g.connect(ac.destination);
+      TUNE.forEach(function(n,i){ if(n[0]) bell(ac,n[0],t,Math.min(1.2,n[1]*beat*2),.07,bg.g);
+        if(i%4===0&&n[0]) bell(ac,n[0]/2,t,.6,.03,bg.g); t+=n[1]*beat; total+=n[1]*beat;});
+      return total*1000;
+    }catch(e){return 1700;}
+  }
+  function stopSong(){ if(bg.audio)bg.audio.pause(); if(bg.g){try{bg.g.disconnect();}catch(e){} bg.g=null;} }
+
+  // ---------- Joc: el Tió salta el foc i menja mandarines (pixel art) ----------
+  var PX={
+    tio:["...........RRRR.................","..........RRRRRR................","..........RR..RR................","..............RR................",
+         ".............RRR................","......BBBBBBBBB.................","....KKKKKKKKKKKKKKKKKKKKKKKKKK..","...KWWWWWWKLLLLLLLLLLLLLLLLLLLK.",
+         "..KWWWWWWWWKLLDLLLLLLDLLLLLLLLK.","..KWWEWWWEWKLLLLLLLLLLLLLDLLLLLK",".NNNWWWWWWWKLLLLLDLLLLLLLLLLLLLK",".NNNWWWWWWWKLLLLLLLLLLLDLLLLLLLK",
+         "..KWKWWWWKWKLLDLLLLLLLLLLLLLLLLK","..KWWKKKKWWKLLLLLLLLLDLLLLLLLLK.","...KWWWWWWKLLLLLLLLLLLLLLLLLLLK.","....KKKKKKKKKKKKKKKKKKKKKKKKKK.."],
+    legs:[[".....S...S..............S..S....",".....S...S..............S..S....","....S....S.............S...S...."],
+          ["......S.S................SS.....","......S.S................SS.....",".....S...S..............S..S...."]],
+    fire:[["....R....","...RR..R.","..RYR.RR.",".RYYRRYR.",".RYYYYYR.","RYYWYYYYR","RYWWWYYYR","RYYWWYYR.",".RYYYYR..","DDLLDLLDD"],
+          [".R.......","..R..RR..","..RR.RYR.",".RYRRYYR.",".RYYYYYR.","RYYYWYYYR","RYYWWWYYR",".RYWWYYR.","..RYYYR..","DDLLDLLDD"]],
+    man:["...G...","..OOO..",".OOOOO.","OOHOOOO","OOOOOOO",".OOOOO.","..OOO.."]
+  };
+  var PC={R:'#c7372c',B:'#2b2b2b',K:'#3a2a20',W:'#f3dfb0',L:'#8a6447',D:'#5a3e2b',N:'#d0352c',E:'#1c1c1c',S:'#6b4a30',Y:'#f2c23a',G:'#2f8a4e',O:'#f08a1c',H:'#ffd08a'};
+  function sprite(ctx,rows,x,y,u,flip){for(var j=0;j<rows.length;j++){var r=rows[j];for(var i=0;i<r.length;i++){var c=PC[r[i]];if(!c)continue;ctx.fillStyle=c;ctx.fillRect(x+(flip?(r.length-1-i):i)*u,y+j*u,u+.4,u+.4);}}}
+  var G=null, GROUND=168, U=2.3;
+  function shortLog(r){return r.slice(0,14)+r.slice(24);}
+  var TIO_G=PX.tio.map(shortLog), LEGS_G=PX.legs.map(function(f){return f.map(shortLog);});
+  function gameStart(){
+    var best=0; try{best=+lsGet('tiogochi-record')||0;}catch(e){}
+    G={y:0,vy:0,on:true,t:0,speed:1.9,obs:[],man:[],score:0,dist:0,over:false,best:best,next:60,nextM:30,raf:0,last:0,started:false};
+    G.raf=requestAnimationFrame(gameLoop);
+  }
+  function gameStop(){ if(G){cancelAnimationFrame(G.raf);} G=null; }
+  function gameJump(){
+    if(!G){gameStart();return;}
+    if(G.over){ if(Date.now()-G.overAt<500)return; gameStop(); render(); gameStart(); return; }
+    G.started=true;
+    if(G.on){G.vy=-8.4;G.on=false;}
+  }
+  function gameOver(){
+    G.over=true; G.overAt=Date.now();
+    if(G.score>G.best){G.best=G.score; lsSet('tiogochi-record',String(G.score)); if(me) add('game',String(G.score)).then(renderRecs); G.newRec=true;}
+  }
+  function gameLoop(ts){
+    if(!G)return; var cv=document.getElementById('gc'); if(!cv||mode!=='game'){gameStop();return;}
+    var W0=Math.round(cv.clientWidth*(window.devicePixelRatio||1)); if(W0&&cv.width!==W0){cv.width=W0;cv.height=Math.round(W0*198/240);}
+    var ctx=cv.getContext('2d'); ctx.setTransform(cv.width/240,0,0,cv.width/240,0,0); ctx.imageSmoothingEnabled=false; var dt=G.last?Math.min(2.5,(ts-G.last)/16.7):1; G.last=ts;
+    if(G.started&&!G.over){
+      G.t+=dt; G.speed=Math.min(4.4,1.9+G.t/1100); G.dist+=G.speed*dt;
+      G.vy+=0.36*dt; G.y+=G.vy*dt; if(G.y>=0){G.y=0;G.vy=0;G.on=true;}
+      G.next-=G.speed*dt; if(G.next<=0){G.obs.push({x:250}); G.next=150+Math.random()*140+G.speed*16;}
+      G.nextM-=G.speed*dt; if(G.nextM<=0){G.man.push({x:250,y:Math.random()<.5?GROUND-30:GROUND-78}); G.nextM=70+Math.random()*110;}
+      G.obs.forEach(function(o){o.x-=G.speed*dt;}); G.man.forEach(function(m){m.x-=G.speed*dt;});
+      G.obs=G.obs.filter(function(o){return o.x>-30;}); G.man=G.man.filter(function(m){return m.x>-20&&!m.eaten;});
+      var tx=10, ty=GROUND-44+G.y, tw=50, th=42;
+      G.obs.forEach(function(o){ if(tx+12<o.x+13&&tx+tw-8>o.x+5&&ty+th>GROUND-13) gameOver(); });
+      G.man.forEach(function(m){ if(!m.eaten&&tx<m.x+14&&tx+tw>m.x&&ty<m.y+14&&ty+th>m.y){m.eaten=true;G.score++;} });
+    }
+    // dibuix
+    ctx.fillStyle='#cfd8b4'; ctx.fillRect(0,0,240,198);
+    ctx.fillStyle='rgba(60,80,50,.07)'; for(var x=0;x<240;x+=3)ctx.fillRect(x,0,1,198); for(var y=0;y<198;y+=3)ctx.fillRect(0,y,240,1);
+    var off=(G.dist*0.3)%240; ctx.fillStyle='#b9c69c';
+    for(var k=-1;k<3;k++){var hx=k*120-off; ctx.beginPath(); ctx.arc(hx+60,GROUND+6,48,Math.PI,0); ctx.fill();}
+    ctx.fillStyle='#ffffff'; ctx.fillRect(0,GROUND,240,30); ctx.fillStyle='#a9b98f'; for(var g=0;g<240;g+=12)ctx.fillRect((g-G.dist%12+240)%240,GROUND+4,5,2);
+    G.man.forEach(function(m){ if(!m.eaten) sprite(ctx,PX.man,m.x,m.y,2); });
+    var fr=Math.floor(G.t/8)%2; G.obs.forEach(function(o){ sprite(ctx,PX.fire[fr],o.x,GROUND-20,2); });
+    var legs=G.on&&G.started&&!G.over?LEGS_G[Math.floor(G.t/6)%2]:LEGS_G[0];
+    sprite(ctx,TIO_G.concat(legs),10,GROUND-44+G.y,U,true);
+    ctx.fillStyle='#26301f'; ctx.font='600 13px "Pixelify Sans",monospace'; ctx.textAlign='left';
+    ctx.fillText('Mandarines '+G.score,8,16); ctx.textAlign='right'; ctx.fillText('Rècord '+G.best,232,16);
+    ctx.textAlign='center';
+    if(!G.started){ctx.font='600 15px "Pixelify Sans",monospace';ctx.fillText('Salta per començar!',120,70);ctx.font='12px "Pixelify Sans",monospace';ctx.fillText('Menja mandarines, no et cremis',120,88);}
+    if(G.over){ctx.fillStyle='#cfd8b4';ctx.fillRect(30,46,180,66);ctx.strokeStyle='#26301f';ctx.lineWidth=2;ctx.strokeRect(30,46,180,66);
+      ctx.fillStyle='#26301f';ctx.font='600 16px "Pixelify Sans",monospace';ctx.fillText(G.newRec?'Nou rècord!':'Cremat!',120,68);
+      ctx.font='12px "Pixelify Sans",monospace';ctx.fillText(G.score+(G.score===1?' mandarina':' mandarines'),120,86);ctx.fillText('Salta per tornar-hi',120,102);}
+    G.raf=requestAnimationFrame(gameLoop);
+  }
+  document.addEventListener('keydown',function(ev){ if(mode==='game'&&(ev.code==='Space'||ev.key===' '||ev.key==='ArrowUp')){ev.preventDefault(); if(!ev.repeat)gameJump();} });
+
+  // ---------- Codi personal i amic invisible (xifrat) ----------
+  function b64(s){var b=atob(s),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+  function norm(c){return String(c||'').trim().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+  function unlock(name,code){
+    var v=SECRET.vault[name]; if(!v||!window.crypto||!crypto.subtle) return Promise.reject();
+    var te=new TextEncoder();
+    return crypto.subtle.importKey('raw',te.encode(norm(code)),'PBKDF2',false,['deriveKey']).then(function(k){
+      return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(v.s),iterations:150000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['decrypt']);
+    }).then(function(k){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64(v.i)},k,b64(v.c));})
+      .then(function(buf){return JSON.parse(new TextDecoder().decode(buf));});
+  }
+  var me=null, secret=null, reveal=false, loginErr='', formName='', formCode='';
+
+  // ---------- Interfície ----------
+  var sleepingNow=false, woke=false, wokeUntil=0, singT=0, quizPage=0, quizSel=0, bulPage=0, mode='home', menuSel=-1, foodSel=0, hint='', hintT=0, eating=null, singing=false, hits=0, whack=false;
+  var app=document.getElementById('app');
+  var dots='';[[8,38],[90,32],[5,56],[93,52],[12,74],[86,72],[24,88],[74,90],[50,95],[16,48],[82,44]].forEach(function(q,i){
+    dots+=i%3===2?'<b style="left:'+q[0]+'%;top:'+q[1]+'%"></b>':'<i style="left:'+q[0]+'%;top:'+q[1]+'%"></i>';});
+  var flakes='';for(var i=0;i<8;i++){flakes+='<i class="flake" style="left:'+(6+i*12)+'%;animation-duration:'+(5+(i*37%5))+'s;animation-delay:-'+(i*1.3)+'s"></i>';}
+  app.innerHTML=
+    '<header><h1>Tiogochi</h1></header>'+
+    '<section class="egg" aria-label="Consola del Tió"><div class="dots">'+dots+'</div><p class="logo">TIOGOCHI</p>'+
+      '<div class="bezel"><div class="icons" id="icons"></div><div class="screen" id="screen" aria-live="polite"></div>'+
+      '<div class="bars" id="bars"></div></div>'+
+      '<div class="keys"><button class="key" type="button" id="kA"><i></i><span>A</span></button><button class="key" type="button" id="kB"><i></i><span>B</span></button><button class="key" type="button" id="kC"><i></i><span>C</span></button></div>'+
+      '<div class="senyera" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div></section>'+
+    '<p class="slogan">La salut del Tió és una responsabilitat col·lectiva.</p>'+
+    '<div class="count" id="sub"></div>'+
+    '<section class="card" id="who"></section>'+
+    '<section class="card" id="fin" hidden></section>'+
+    '<section class="card" id="ami" hidden></section>'+
+    '<section class="card"><h2>Qui el cuida més</h2><div id="rank"></div></section>'+
+    '<section class="card"><h2>Diari del Tió</h2><div id="diary"></div></section>'+
+    '<section class="card"><h2>Rècords del joc</h2><div id="recs"></div></section>'+
+    '<p class="foot" id="foot"></p>';
+  document.getElementById('icons').innerHTML=ICONS.map(function(x,i){return '<button class="ico" type="button" data-i="'+i+'" aria-label="'+x.n+'">'+x.i+'</button>';}).join('');
+
+  function tell(m){hint=m;render();clearTimeout(hintT);hintT=setTimeout(function(){hint='';render();},3000);}
+  function need(){if(!me){tell('Primer entra amb el teu nom i el teu codi.');document.getElementById('who').scrollIntoView({behavior:'smooth',block:'center'});return false;}return true;}
+  function go(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+  function activate(i){
+    menuSel=i;
+    if(i===0){ if(!need())return; var al=allow(); if(al.feed<=0&&!health().sick){tell(al.quiz&&al.quiz.v==='1'?'Avui ja m’has donat les dues racions. Fins demà!':'Avui ja m’has donat menjar. Encerta el problema del dia per a una ració extra!');return;} mode='food'; hint=''; clearTimeout(hintT); render(); }
+    else if(i===1){ if(!need())return;
+      // Es pot cantar sempre; només la primera cançó del dia de cada persona suma alegria i surt al diari.
+      var first=allow().sing>0, wasAsleep=sleepingNow;
+      var ms=playSong(); singing=true; woke=wasAsleep||(woke&&Date.now()<wokeUntil); wokeUntil=Date.now()+ms+120000; render(); if(first) add('sing','1').then(render); clearTimeout(singT); singT=setTimeout(function(){singing=false;render();},ms); }
+    else if(i===2){ mode='quiz'; quizPage=0; quizSel=0; hint=''; render(); }
+    else if(i===3){ mode='bul'; bulPage=0; hint=''; render(); }
+    else { mode='game'; hint=''; render(); gameStart(); }
+  }
+  function give(){
+    var f=foods()[foodSel]; if(!f||eating)return;
+    if(f.id!=='brou'&&allow().feed<=0){tell('Avui ja m’has donat menjar. Però la sopa de galets sí que me la pots donar!');return;} mode='home'; eating=f; render();
+    add('feed',f.id).then(function(){setTimeout(function(){eating=null;render();},1400);});
+  }
+  function tapa(){ if(!need())return; add('tapa','1').then(render); hint='Gràcies! Ara sí que podré dormir…'; clearTimeout(hintT); hintT=setTimeout(function(){hint='';render();},3000); render(); }
+  function hit(){if(hits>=3)return;hits++;whack=true;render();setTimeout(function(){whack=false;render();},320);}
+  document.getElementById('kA').addEventListener('click',function(){
+    if(isFin())return hit(); if(eating||singing)return;
+    if(mode==='food'){foodSel=(foodSel+1)%foods().length;}else if(mode==='bul'){bulPage=(bulPage+2)%3;}else if(mode==='quiz'){quizA();return;}else if(mode==='game'){gameJump();return;}else{menuSel=(menuSel+1)%ICONS.length;} hint='';render();});
+  document.getElementById('kB').addEventListener('click',function(){
+    if(isFin())return hit(); if(eating||singing)return;
+    if(mode==='home'&&health().fallen) tapa(); else if(mode==='food') give(); else if(mode==='bul'){bulPage=(bulPage+1)%3;render();} else if(mode==='quiz'){quizB();} else if(mode==='game'){gameJump();} else if(menuSel<0) tell('Prem A per moure’t pel menú i B per triar.'); else activate(menuSel);});
+  document.getElementById('kC').addEventListener('click',function(){
+    if(isFin())return hit(); if(singing){stopSong();clearTimeout(singT);singing=false;} if(mode==='game')gameStop(); mode='home'; menuSel=-1; hint=''; render();});
+  document.getElementById('icons').addEventListener('click',function(ev){
+    var b=ev.target.closest('.ico'); if(!b||isFin()||eating||singing)return; activate(+b.getAttribute('data-i'));});
+  document.getElementById('screen').addEventListener('click',function(ev){
+    if(mode==='game'){gameJump();return;}
+    if(mode==='home'&&health().fallen&&!ev.target.closest('.fd')){tapa();return;}
+    var qb=ev.target.closest('[data-q]'); if(qb){ if(myQuiz())return; var qi=+qb.getAttribute('data-q'); if(qi===quizSel){ if(need()) answer(qi);} else {quizSel=qi;render();} return; }
+    var b=ev.target.closest('.fd'); if(!b)return; var i=+b.getAttribute('data-i');
+    if(i===foodSel) give(); else {foodSel=i;render();}});
+
+  function mood(s){
+    var lastMine=EV.length?EV[EV.length-1].t:BORN;
+    if(s.p>=90) return 'tip';
+    if(s.p<25) return 'famolenc';
+    if(s.a<25||Date.now()-lastMine>24*36e5) return 'enfadat';
+    if(s.p>=60&&s.a>=60) return 'content';
+    return 'normal';
+  }
+  var SAY={tip:'No puc més. Estic a punt de cagar.',famolenc:'Em ronca la panxa…',enfadat:'M’heu abandonat per estudiar epidemiologia?',
+    content:'Això sí que és un bon màster!',normal:'Menjaria una mica més.'};
+
+  function render(){
+    var fin=isFin(), s=status(Date.now()), h=hourNow(), hl=health(); if(hl.sick) s.a=Math.max(0,s.a-Math.round((Date.now()-hl.sick)/36e5*DEC_A)); var md=fin?'content':mood(s);
+    var isNight=!fin&&(h>=23||h<7), awake=Date.now()<wokeUntil, sleep=isNight&&!hl.fallen&&!coffee()&&!awake&&!eating&&!singing&&mode==='home'&&!hint; sleepingNow=sleep;
+    var say=eating?eating.say:singing?(woke?'Eh?! Qui em canta a aquestes hores? ♪':'♪ Caga tió, ametlles i torró… ♪'):fin?(hits>=3?'Caga, Tió! Bon amic invisible!':'Estic preparat per cagar!'):
+      hint?hint:mode==='food'?foods()[foodSel].n+'? Prem B per donar-l’hi.':
+      hl.fallen?'Brrr… qui m’ha destapat? Tapa’m, si us plau!':
+      hl.sick&&!sleep?(mode==='food'?'':'Atxim! Estic costipat… Una sopa de galets?'):
+      isNight&&!sleep&&coffee()?'Massa cafè… no puc dormir!':isNight&&awake&&woke?'M’heu despertat! Ara em costarà tornar a dormir…':sleep?'Zzz… cinc minutets més…':SAY[md];
+    var d=daysLeft();
+    document.getElementById('sub').innerHTML=fin?'<span class="num">!</span><span class="txt"><b>Avui és l’amic invisible</b>El Tió del màster de Salut Pública està a punt de cagar.</span>':
+      '<span class="num">'+d+'</span><span class="txt"><b>'+(d===1?'dia':'dies')+' per a l’amic invisible</b>11 de desembre · El Tió del màster de Salut Pública</span>';
+    Array.prototype.forEach.call(document.querySelectorAll('.ico'),function(b,i){b.classList.toggle('sel',i===menuSel&&!fin);});
+    var scr=document.getElementById('screen'); scr.classList.toggle('night',isNight);
+    if(mode==='game'&&!fin){ scr.classList.remove('night'); if(!document.getElementById('gc')){scr.innerHTML=tioSvg({mood:md,b:''})+'<canvas class="game" id="gc" width="240" height="198" aria-label="Joc: el Tió salta el foc i menja mandarines"></canvas>';} }
+    else if((mode==='bul'||mode==='quiz')&&!fin){scr.classList.remove('night');scr.innerHTML=tioSvg({mood:md,b:''})+(mode==='bul'?bulHtml(s):quizHtml());}
+    else scr.innerHTML=flakes+tioSvg({mood:md,sleep:sleep,cold:hl.fallen,sick:!!hl.sick,night:isNight,eat:!!eating,sing:singing,whack:whack,b:fin?'super':isNight&&sleep?'simple':''})+
+      '<div class="bubble">'+esc(say)+'</div><div class="lvl">'+level()+'</div>'+(eating?'<div class="bite">'+eating.i+'</div>':'')+(singing?'<div class="notes">♪ ♫</div>':'')+
+      (mode==='food'&&!fin?'<div class="food">'+foods().map(function(f,i){return '<button class="fd'+(i===foodSel?' sel':'')+'" type="button" data-i="'+i+'" aria-label="'+esc(f.n)+'">'+f.i+esc(f.n.split(' ')[0])+'</button>';}).join('')+'</div>':'');
+    function bar(v){var x='';for(var k=0;k<10;k++)x+='<i'+(k<Math.round(v/10)?' class="on"':'')+'></i>';return '<div class="bar'+(v<35?' low':'')+'">'+x+'</div>';}
+    document.getElementById('bars').innerHTML='<span>Panxa</span><div role="img" aria-label="Panxa al '+s.p+' per cent">'+bar(s.p)+'</div><span>Alegria</span><div role="img" aria-label="Alegria al '+s.a+' per cent">'+bar(s.a)+'</div>';
+    var lab=fin?['Bastó','Bastó','Bastó']:singing?['','','Para']:mode==='food'?['Canvia','Donar','Sortir']:mode==='bul'?['Anterior','Següent','Sortir']:mode==='quiz'?quizLabels():mode==='game'?['Salta','Salta','Sortir']:health().fallen?['Menú','Tapa’l','Enrere']:['Menú','Triar','Enrere'];
+    ['kA','kB','kC'].forEach(function(id,i){var b=document.getElementById(id);b.querySelector('span').textContent=lab[i]||'·';b.classList.toggle('off',!lab[i]);});
+    renderWho(); renderFin(s); renderAmi(); renderLists();
+    document.getElementById('foot').innerHTML=(SB?(netErr?'No s’ha pogut connectar amb el Tió compartit. Torna-ho a provar d’aquí a una estona.<br>':''):'Mode de prova: les dades només es guarden en aquest dispositiu.<br>')+
+      (H()==='#dia11'||H()==='#nit'||H()==='#destapat'||H()==='#costipat'?'Vista prèvia. <a href="#avui">Torna a avui</a>':'Vistes prèvies: <a href="#nit">de nit</a> · <a href="#destapat">destapat</a> · <a href="#costipat">costipat</a> · <a href="#dia11">l’11 de desembre</a>');
+  }
+
+  function renderWho(){
+    var el=document.getElementById('who');
+    if(document.activeElement&&el.contains(document.activeElement)&&!me)return;
+    if(me){el.innerHTML='<p style="margin:0">Cuides el Tió com a <b>'+esc(me.name)+'</b>. <button class="ghost" type="button" id="out">Surt</button></p>';
+      document.getElementById('out').onclick=function(){me=null;secret=null;reveal=false;lsSet(LS_ME,'');render();};return;}
+    el.innerHTML='<h2>Entra</h2><form id="fin-form"><label for="nom">El teu nom</label><select id="nom"><option value="">Tria’l de la llista</option>'+
+      NAMES.slice().sort(function(a,b){return a.localeCompare(b,'ca');}).map(function(n){return '<option>'+esc(n)+'</option>';}).join('')+'</select>'+
+      '<label for="codi" style="margin-top:10px">El teu codi</label><div class="row" style="margin-top:0"><input type="text" id="codi" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="BOLE">'+
+      '<button class="btn" type="submit">Entra</button></div>'+(loginErr?'<p class="err">'+esc(loginErr)+'</p>':'')+
+      '</form><p class="note">Només cal un cop: aquest dispositiu se’n recordarà. El codi te’l dona la Mar.</p>';
+    document.getElementById('nom').value=formName; document.getElementById('codi').value=formCode;
+    document.getElementById('fin-form').addEventListener('submit',function(ev){ev.preventDefault();
+      var n=document.getElementById('nom').value, c=document.getElementById('codi').value; formName=n; formCode=c;
+      if(!n){loginErr='Tria el teu nom.';document.activeElement.blur();render();return;}
+      if(!norm(c)){loginErr='Escriu el teu codi.';document.activeElement.blur();render();return;}
+      unlock(n,c).then(function(sec){me={name:n,code:norm(c)};secret=sec;loginErr='';lsSet(LS_ME,JSON.stringify(me));document.activeElement.blur();render();},
+        function(){loginErr='Aquest codi no és el de '+n.split(' ')[0]+'. Revisa’l.';document.activeElement.blur();render();});});
+  }
+
+  function renderQuiz(){
+    var el=document.getElementById('quiz');
+    if(isFin()){el.innerHTML='<h2>Problema del dia</h2><p style="margin:0">Avui no hi ha problema: toca fer cagar el Tió.</p>';return;}
+    var qi=qIndex(), Q=PREGUNTES[qi], d=dayKey(Date.now());
+    var mineQ=me?mine('quiz',d)[0]:null;
+    var all=EV.filter(function(e){return e.k==='quiz'&&dayKey(e.t)===d;}), ok=all.filter(function(e){return e.v==='1';}).length;
+    var html='<h2>Problema del dia</h2><p class="qt">'+(qi+1)+'/15 · '+esc(Q.t)+'</p><p class="q">'+esc(Q.q)+'</p><div class="opts">'+
+      Q.o.map(function(o,i){var cls=mineQ?(i===Q.a?' ok':(mineQ.v!=='1'&&i===mineQ.c?' no':'')):'';
+        return '<button class="opt'+cls+'" type="button" data-i="'+i+'"'+(mineQ||!me?' disabled':'')+'>'+esc(o)+'</button>';}).join('')+'</div>';
+    if(mineQ) html+='<p class="res"><b style="color:var('+(mineQ.v==='1'?'--ok':'--bad')+')">'+(mineQ.v==='1'?'Correcte! Avui pots donar una ració extra al Tió.':'Gairebé!')+'</b> '+esc(Q.e)+'</p>';
+    else if(!me) html+='<p class="note">Entra per respondre. Si l’encertes, guanyes una ració extra per al Tió.</p>';
+    else html+='<p class="note">Només tens un intent. Si l’encertes, guanyes una ració extra per al Tió.</p>';
+    html+='<p class="note">Avui l’han respost '+all.length+(all.length===1?' persona':' persones')+(all.length?', i l’han encertat '+Math.round(ok*100/all.length)+'%':'')+'.</p>';
+    el.innerHTML=html;
+    if(me&&!mineQ) Array.prototype.forEach.call(el.querySelectorAll('.opt'),function(b){b.addEventListener('click',function(){
+      var i=+b.getAttribute('data-i'); add('quiz',i===Q.a?'1':'0',i).then(render); render();});});
+  }
+
+  function myQuiz(){return me?mine('quiz',dayKey(Date.now()))[0]:null;}
+  // Problema: Enunciat (A –, B Opcions) · Opcions (A Canvia, B Respon) o, ja resposta, (A Enunciat, B Solució) · Solució (A Opcions, B –). C sempre surt.
+  function quizA(){
+    var mq=myQuiz();
+    if(quizPage===1&&!mq) quizSel=(quizSel+1)%4;
+    else if(quizPage===1) quizPage=0;
+    else if(quizPage===2) quizPage=1;
+    render();
+  }
+  function quizB(){
+    var mq=myQuiz();
+    if(quizPage===0) quizPage=1;
+    else if(quizPage===1&&!mq){ if(!need())return; answer(quizSel); return; }
+    else if(quizPage===1) quizPage=2;
+    render();
+  }
+  function quizLabels(){
+    var mq=myQuiz();
+    if(quizPage===0) return ['','Opcions','Sortir'];
+    if(quizPage===1) return mq?['Enunciat','Solució','Sortir']:['Canvia','Respon','Sortir'];
+    return ['Opcions','','Sortir'];
+  }
+  function answer(i){
+    var Q=PREGUNTES[qIndex()]; if(myQuiz())return;
+    add('quiz',i===Q.a?'1':'0',i).then(render); quizPage=2; render();
+  }
+  function quizHtml(){
+    var hd=function(t){return '<div class="hd"><span>'+t+'</span><span>'+(quizPage+1)+'/3</span></div>';};
+    var qi=qIndex(), Q=PREGUNTES[qi], mq=myQuiz(), d=dayKey(Date.now());
+    if(quizPage===0) return '<div class="lcd">'+hd('PROBLEMA '+(qi+1)+'/15')+'<div class="qq"><p class="big">'+esc(Q.t)+'</p><p>'+esc(Q.q)+'</p></div><div class="ft">B: veure les opcions</div></div>';
+    if(quizPage===1) return '<div class="lcd">'+hd('OPCIONS')+'<div class="op">'+Q.o.map(function(o,i){
+        var c=mq?(i===Q.a?'ok':(i===mq.c&&mq.v!=='1'?'no':'')):(i===quizSel?'sel':'');
+        return '<button type="button" data-q="'+i+'" class="'+c+'">'+'ABCD'[i]+') '+esc(o)+'</button>';}).join('')+'</div>'+
+        '<div class="ft">'+(mq?'Ja has respost. Mira la solució.':!me?'Entra per respondre.':'Només tens un intent')+'</div></div>';
+    var all=EV.filter(function(e){return e.k==='quiz'&&dayKey(e.t)===d;}), ok=all.filter(function(e){return e.v==='1';}).length;
+    if(!mq) return '<div class="lcd">'+hd('SOLUCIÓ')+'<div class="qq" style="display:flex;align-items:center;text-align:center"><p>Primer respon el problema. La solució surt després.</p></div><div class="ft">Avui l’han respost '+all.length+'</div></div>';
+    return '<div class="lcd">'+hd('SOLUCIÓ')+'<div class="qq"><p class="big">'+(mq.v==='1'?'Correcte! +1 ració extra':'Gairebé!')+'</p><p>Resposta: '+esc(Q.o[Q.a])+'</p><p style="margin-top:4px">'+esc(Q.e)+'</p></div>'+
+      '<div class="ft">Encert de la classe: '+(all.length?Math.round(ok*100/all.length)+'%':'–')+' ('+all.length+')</div></div>';
+  }
+
+  function bulHtml(s){
+    var d=dayKey(Date.now()), since=Date.now()-24*36e5, fedToday={}, active={};
+    EV.forEach(function(e){if(e.k==='feed'&&dayKey(e.t)===d)fedToday[e.who]=1; if(e.t>since)active[e.who]=1;});
+    var q=EV.filter(function(e){return e.k==='quiz'&&dayKey(e.t)===d;}), qok=q.filter(function(e){return e.v==='1';}).length;
+    var date=new Date().toLocaleDateString('ca-ES',{timeZone:TZ,day:'numeric',month:'short'});
+    var hd='<div class="hd"><span>'+['BUTLLETÍ EPIDEMIOLÒGIC','RACIONS PER DIA','SALUT PÚBLICA'][bulPage]+'</span><span>'+(bulPage+1)+'/3</span></div>', body;
+    if(bulPage===0){
+      body='<div class="g"><div>Risc de gana<b>'+(s.p<25?'ALT':s.p<50?'MODERAT':'BAIX')+'</b></div>'+
+        '<div>Cobertura avui<b>'+Math.round(Object.keys(fedToday).length*100/NAMES.length)+'%</b></div>'+
+        '<div>Cuidadors 24 h<b>'+Object.keys(active).length+'</b></div>'+
+        '<div>Estat de salut<b>'+(health().sick?'COSTIPAT':health().fallen?'DESTAPAT':'SA')+'</b></div></div>'+
+        '<div class="ft">Agència de Salut Pública del Tió · '+date+'</div>';
+    } else if(bulPage===1){
+      var days=[],mx=1;
+      for(var i=6;i>=0;i--){var k=dayKey(Date.now()-i*864e5),c=EV.filter(function(e){return e.k==='feed'&&dayKey(e.t)===k;}).length;days.push({k:k,c:c});mx=Math.max(mx,c);}
+      body='<div class="ch">'+days.map(function(x,i){return '<div class="'+(i===6?'today':'')+'"><span>'+x.c+'</span><i style="height:'+Math.round(x.c*100/mx*0.62)+'%"></i><span>'+(+x.k.slice(8))+'</span></div>';}).join('')+'</div>'+
+        '<div class="ft">Mandarines: '+EV.filter(function(e){return e.k==='feed'&&e.v==='mandarina';}).length+' · Total: '+EV.filter(function(e){return e.k==='feed';}).length+'</div>';
+    } else {
+      var di=Math.max(0,Math.round((Date.parse(d)-Date.parse(FIRSTQ))/864e5));
+      body='<div class="rc">'+esc(RECS[di%RECS.length])+'</div><div class="ft">Recomanació del dia</div>';
+    }
+    return '<div class="lcd">'+hd+body+'</div>';
+  }
+
+  function renderBul(s){
+    var el=document.getElementById('bul'), d=dayKey(Date.now()), since=Date.now()-24*36e5;
+    var fedToday={}, active={}; EV.forEach(function(e){if(e.k==='feed'&&dayKey(e.t)===d)fedToday[e.who]=1; if(e.t>since)active[e.who]=1;});
+    var mand=EV.filter(function(e){return e.k==='feed'&&e.v==='mandarina';}).length;
+    var q=EV.filter(function(e){return e.k==='quiz'&&dayKey(e.t)===d;}), qok=q.filter(function(e){return e.v==='1';}).length;
+    var risk=s.p<25?'Alt':s.p<50?'Moderat':'Baix';
+    var di=Math.max(0,Math.round((Date.parse(d)-Date.parse(FIRSTQ))/864e5));
+    el.innerHTML='<h2>Butlletí epidemiològic</h2><div class="bul"><p class="hd">AGÈNCIA DE SALUT PÚBLICA DEL TIÓ · '+new Date().toLocaleDateString('ca-ES',{timeZone:TZ,day:'numeric',month:'long'})+'</p>'+
+      '<div class="stats"><div class="stat"><span>Risc de gana</span><b>'+risk+'</b></div>'+
+      '<div class="stat"><span>Cobertura alimentària avui</span><b>'+Math.round(Object.keys(fedToday).length*100/NAMES.length)+'%</b></div>'+
+      '<div class="stat"><span>Cuidadors actius (24 h)</span><b>'+Object.keys(active).length+'</b></div>'+
+      '<div class="stat"><span>Mandarines consumides</span><b>'+mand+'</b></div>'+
+      '<div class="stat"><span>Encert del problema d’avui</span><b>'+(q.length?Math.round(qok*100/q.length)+'%':'–')+'</b></div>'+
+      '<div class="stat"><span>Racions totals</span><b>'+EV.filter(function(e){return e.k==='feed';}).length+'</b></div></div>'+
+      '<p class="rec">Recomanació de salut pública: '+esc(RECS[di%RECS.length])+'</p></div>';
+  }
+
+  function renderAmi(){
+    var el=document.getElementById('ami');
+    if(!me||!secret){el.hidden=true;return;} el.hidden=false;
+    el.innerHTML='<h2>El teu amic invisible</h2><p style="margin:0">Es secret. Mira-ho quan ningú et vegi.</p>'+
+      '<div class="row"><button class="btn" type="button" id="rev">'+(reveal?'Amaga-ho':'Mostra a qui li fas el regal')+'</button></div>'+
+      (reveal?'<div class="secret"><p class="who">'+esc(secret.to)+'</p><p><b>Què li agrada:</b> '+esc(secret.pref||'No ha donat pistes. Sorprèn-lo!')+'</p></div>':'');
+    document.getElementById('rev').onclick=function(){reveal=!reveal;renderAmi();};
+  }
+
+  function renderFin(s){
+    var el=document.getElementById('fin');
+    if(!isFin()){el.hidden=true;return;} el.hidden=false;
+    var feeds=EV.filter(function(e){return e.k==='feed';}).length, songs=EV.filter(function(e){return e.k==='sing';}).length,
+        oks=EV.filter(function(e){return e.k==='quiz'&&e.v==='1';}).length, ppl={}; EV.forEach(function(e){ppl[e.who]=1;});
+    var names=Object.keys(ppl).map(function(n){return SHORT[n]||n;}).sort(function(a,b){return a.localeCompare(b,'ca');});
+    if(hits<3){el.innerHTML='<h2>Fer cagar el Tió</h2><p style="margin:0">Avui és el dia. Doneu-li tres cops de bastó amb els botons de la consola i canteu: <i>Caga tió, ametlles i torró…</i></p><p class="note">Cops: '+hits+'/3</p>';return;}
+    var g='';for(var i=0;i<18;i++)g+=GIFTS[i%GIFTS.length].replace('<svg ','<svg style="animation-delay:'+(i*60)+'ms" ');
+    el.innerHTML='<div class="gifts">'+g+'</div><div class="diploma"><h3>Hem criat un Tió entre tots</h3>'+
+      '<p>Del 26 de novembre a l’11 de desembre de 2026, el màster de Salut Pública li ha donat <b>'+feeds+(feeds===1?' ració':' racions')+'</b>, li ha cantat <b>'+songs+(songs===1?' cop':' cops')+'</b> i ha resolt <b>'+oks+(oks===1?' problema':' problemes')+' d’epidemiologia</b>.</p>'+
+      '<p class="note">'+(names.length?'Cuidadors: '+esc(names.join(', '))+'.':'')+'</p></div>';
+  }
+
+  function renderRecs(){
+    var best={}; EV.forEach(function(e){if(e.k==='game'){var v=+e.v||0; if(!best[e.who]||v>best[e.who])best[e.who]=v;}});
+    var o=Object.keys(best).map(function(w){return {n:SHORT[w]||w,v:best[w]};}).sort(function(a,b){return b.v-a.v;}).slice(0,6);
+    document.getElementById('recs').innerHTML=o.length?'<ol>'+o.map(function(x,i){return '<li><span>'+(i+1)+'. '+esc(x.n)+'</span><span class="n">'+x.v+(x.v===1?' mandarina':' mandarines')+'</span></li>';}).join('')+'</ol>':
+      '<p style="margin:0;color:var(--muted)">Encara no hi ha rècords. Prova el joc des del menú de la consola.</p>';
+  }
+
+  function renderLists(){ renderRecs();
+    var by={}, order=[];
+    EV.forEach(function(e){if((e.k==='quiz'&&e.v!=='1')||e.k==='game')return; if(!by[e.who]){by[e.who]={n:SHORT[e.who]||e.who,c:0};order.push(by[e.who]);} by[e.who].c++;});
+    order.sort(function(a,b){return b.c-a.c;});
+    document.getElementById('rank').innerHTML=order.length?'<ol class="rank">'+order.slice(0,6).map(function(p){
+      return '<li><span>'+esc(p.n)+'</span><span class="n">'+p.c+(p.c===1?' cura':' cures')+'</span></li>';}).join('')+'</ol>':
+      '<p style="margin:0;color:var(--muted)">Encara ningú. Estrena tu el plat.</p>';
+    var last=EV.filter(function(e){return !(e.k==='quiz'&&e.v!=='1')&&e.k!=='game';}).slice(-8).reverse();
+    document.getElementById('diary').innerHTML=last.length?'<ul class="diary">'+last.map(function(e){
+      var w=esc(SHORT[e.who]||e.who), t, ic;
+      if(e.k==='feed'){var f=FOOD[e.v]||{n:'alguna cosa',i:''};t=w+' ha donat '+esc(f.n.toLowerCase())+' al Tió.';ic=f.i;}
+      else if(e.k==='sing'){t=w+' ha cantat al Tió.';ic=ICONS[1].i;}
+      else if(e.k==='tapa'){t=w+' ha tapat el Tió amb la manta a les '+new Date(e.t).toLocaleTimeString('ca-ES',{timeZone:TZ,hour:'2-digit',minute:'2-digit'})+'.';ic='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 10h28l-2 22H8z" fill="#5b82b8"/><path d="M8 28h24" stroke="#f4efe0" stroke-width="2" stroke-dasharray="3 3"/></svg>';}
+      else {t=w+' ha resolt el problema del dia.';ic=ICONS[2].i;}
+      return '<li><span style="width:22px;flex:none">'+ic.replace('<svg ','<svg width="22" height="22" ')+'</span><span>'+t+'</span><span class="n">'+ago(e.t)+'</span></li>';}).join('')+'</ul>':
+      '<p style="margin:0;color:var(--muted)">El Tió acaba d’arribar a classe i té la panxa a mitges.</p>';
+  }
+
+  // Inici
+  try{var saved=JSON.parse(lsGet(LS_ME)||'null');}catch(e){saved=null;}
+  window.addEventListener('hashchange',function(){hits=0;mode='home';menuSel=-1;render();});
+  load().then(function(){
+    render();
+    if(saved&&saved.name&&saved.code) unlock(saved.name,saved.code).then(function(sec){me=saved;secret=sec;render();},function(){lsSet(LS_ME,'');});
+  });
+  setInterval(function(){if(eating||singing)return; load().then(render);},30000);
+})();
+</script>
+</body>
+</html>
