@@ -45,6 +45,8 @@ h2{font-family:var(--display);font-weight:600;font-size:20px;margin:0 0 10px}
 .padrins{margin:-8px 0 0;text-align:center;font-size:14px;color:var(--muted)}
 .padrins b{color:var(--ink)}
 .tag{font-size:12px;font-weight:700;color:var(--pine);margin-left:6px}
+.warn{display:block;width:100%;margin-top:10px;font:inherit;font-weight:700;font-size:14px;color:#7a1f18;background:#fde3df;border:1.5px solid #e8a39a;border-radius:12px;padding:9px 12px;cursor:pointer;text-align:left}
+.warn[hidden]{display:none}
 .count{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 16px}
 .count .num{font-family:var(--display);font-weight:600;font-size:46px;line-height:1;color:var(--red);min-width:62px;text-align:center;font-variant-numeric:tabular-nums}
 .count .txt{font-size:15px;line-height:1.3}
@@ -422,9 +424,12 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
     G.started=true;
     if(G.on){G.vy=-8.4;G.on=false;}
   }
+  function myBest(){var b=0;EV.forEach(function(e){if(me&&e.k==='game'&&e.who===me.name)b=Math.max(b,+e.v||0);});return b;}
+  function syncRecord(){var loc=+lsGet('tiogochi-record')||0; if(me&&loc>myBest()) add('game',String(loc)).then(renderRecs);}
   function gameOver(){
     G.over=true; G.overAt=Date.now();
-    if(G.score>G.best){G.best=G.score; lsSet('tiogochi-record',String(G.score)); if(me) add('game',String(G.score)).then(renderRecs); G.newRec=true;}
+    if(G.score>G.best){G.best=G.score; lsSet('tiogochi-record',String(G.score)); G.newRec=true;}
+    if(me&&G.score>myBest()) add('game',String(G.score)).then(renderRecs);
   }
   function gameLoop(ts){
     if(!G)return; var cv=document.getElementById('gc'); if(!cv||mode!=='game'){gameStop();return;}
@@ -454,10 +459,10 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
     ctx.fillStyle='#26301f'; ctx.font='600 13px "Pixelify Sans",monospace'; ctx.textAlign='left';
     ctx.fillText('Mandarines '+G.score,8,16); ctx.textAlign='right'; ctx.fillText('Rècord '+G.best,232,16);
     ctx.textAlign='center';
-    if(!G.started){ctx.font='600 15px "Pixelify Sans",monospace';ctx.fillText('Salta per començar!',120,70);ctx.font='12px "Pixelify Sans",monospace';ctx.fillText('Menja mandarines, no et cremis',120,88);}
+    if(!G.started){ctx.font='600 15px "Pixelify Sans",monospace';ctx.fillText('Salta per començar!',120,70);ctx.font='12px "Pixelify Sans",monospace';ctx.fillText(me?'Menja mandarines, no et cremis':'Sense entrar, el rècord no es guarda',120,88);}
     if(G.over){ctx.fillStyle='#cfd8b4';ctx.fillRect(30,46,180,66);ctx.strokeStyle='#26301f';ctx.lineWidth=2;ctx.strokeRect(30,46,180,66);
       ctx.fillStyle='#26301f';ctx.font='600 16px "Pixelify Sans",monospace';ctx.fillText(G.newRec?'Nou rècord!':'Cremat!',120,68);
-      ctx.font='12px "Pixelify Sans",monospace';ctx.fillText(G.score+(G.score===1?' mandarina':' mandarines'),120,86);ctx.fillText('Salta per tornar-hi',120,102);}
+      ctx.font='12px "Pixelify Sans",monospace';ctx.fillText(G.score+(G.score===1?' mandarina':' mandarines'),120,86);ctx.fillText(me?'Salta per tornar-hi':'Entra amb el teu nom per guardar-lo',120,102);}
     G.raf=requestAnimationFrame(gameLoop);
   }
   document.addEventListener('keydown',function(ev){ if(mode==='game'&&(ev.code==='Space'||ev.key===' '||ev.key==='ArrowUp')){ev.preventDefault(); if(!ev.repeat)gameJump();} });
@@ -482,7 +487,7 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
     dots+=i%3===2?'<b style="left:'+q[0]+'%;top:'+q[1]+'%"></b>':'<i style="left:'+q[0]+'%;top:'+q[1]+'%"></i>';});
   var flakes='';for(var i=0;i<8;i++){flakes+='<i class="flake" style="left:'+(6+i*12)+'%;animation-duration:'+(5+(i*37%5))+'s;animation-delay:-'+(i*1.3)+'s"></i>';}
   app.innerHTML=
-    '<header><h1>Tiogochi</h1></header>'+
+    '<header><h1>Tiogochi</h1><button class="warn" type="button" id="warn" hidden>Encara no has entrat. Toca aquí per posar el teu nom i codi</button></header>'+
     '<section class="egg" aria-label="Consola del Tió"><div class="dots">'+dots+'</div><p class="logo">TIOGOCHI</p>'+
       '<div class="bezel"><div class="icons" id="icons"></div><div class="screen" id="screen" aria-live="polite"></div>'+
       '<div class="bars" id="bars"></div></div>'+
@@ -500,7 +505,7 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
   document.getElementById('icons').innerHTML=ICONS.map(function(x,i){return '<button class="ico" type="button" data-i="'+i+'" aria-label="'+x.n+'">'+x.i+'</button>';}).join('');
 
   function tell(m){hint=m;render();clearTimeout(hintT);hintT=setTimeout(function(){hint='';render();},3000);}
-  function need(){if(!me){tell('Primer entra amb el teu nom i el teu codi.');document.getElementById('who').scrollIntoView({behavior:'smooth',block:'center'});return false;}return true;}
+  function need(){if(!me){tell('Primer entra amb el teu nom i el teu codi (a sota).');document.getElementById('who').scrollIntoView({behavior:'smooth',block:'center'});return false;}return true;}
   function go(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
   function activate(i){
     menuSel=i;
@@ -576,6 +581,7 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
   }
 
   function renderWho(){
+    var w=document.getElementById('warn'); if(w){w.hidden=!!me; w.onclick=function(){var el=document.getElementById('who');el.scrollIntoView({behavior:'smooth',block:'center'});var n=document.getElementById('nom');if(n)n.focus();};}
     var el=document.getElementById('who');
     if(document.activeElement&&el.contains(document.activeElement)&&!me)return;
     if(me){el.innerHTML='<p style="margin:0">Cuides el Tió com a <b>'+esc(me.name)+'</b>. <button class="ghost" type="button" id="out">Surt</button></p>';
@@ -590,7 +596,7 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
       var n=document.getElementById('nom').value, c=document.getElementById('codi').value; formName=n; formCode=c;
       if(!n){loginErr='Tria el teu nom.';document.activeElement.blur();render();return;}
       if(!norm(c)){loginErr='Escriu el teu codi.';document.activeElement.blur();render();return;}
-      unlock(n,c).then(function(sec){me={name:n,code:norm(c)};secret=sec;loginErr='';lsSet(LS_ME,JSON.stringify(me));document.activeElement.blur();render();},
+      unlock(n,c).then(function(sec){me={name:n,code:norm(c)};secret=sec;loginErr='';lsSet(LS_ME,JSON.stringify(me));document.activeElement.blur();render();syncRecord();},
         function(){loginErr='Aquest codi no és el de '+n.split(' ')[0]+'. Revisa’l.';document.activeElement.blur();render();});});
   }
 
@@ -745,7 +751,7 @@ var MUSIC_SRC='canco.mp3'; // «Christmas Night», de Top-Flow (Pixabay)
   window.addEventListener('hashchange',function(){hits=0;mode='home';menuSel=-1;render();});
   load().then(function(){
     render();
-    if(saved&&saved.name&&saved.code) unlock(saved.name,saved.code).then(function(sec){me=saved;secret=sec;render();},function(){lsSet(LS_ME,'');});
+    if(saved&&saved.name&&saved.code) unlock(saved.name,saved.code).then(function(sec){me=saved;secret=sec;render();syncRecord();},function(){lsSet(LS_ME,'');});
   });
   setInterval(function(){if(eating||singing)return; load().then(render);},30000);
 })();
